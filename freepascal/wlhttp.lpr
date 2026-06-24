@@ -176,6 +176,7 @@ end;
 var
   PortEnv, PublicDir, StaticUrl: string;
 begin
+  Randomize;            // seed the RNG used by NewId (wlapi/wldesigner) — else ids repeat per run
   TenantInit(DATA_ROOT);
 
   // static assets: configurable mount + disk dir (embedded build ignores the disk dir)

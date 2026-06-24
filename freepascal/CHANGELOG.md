@@ -77,6 +77,8 @@ and renders a board page from SQLite.
   reimplementation" was turned into a `../wami/omi` path and is now restored.
 - `wldb.pas`: `journal_mode` is now `DELETE` under `{$IF DEFINED(AMIGA) or MORPHOS or AROS}`
   (WAL needs shared-memory/mmap that classic Amiga filesystems lack), WAL elsewhere.
+- `wlhttp.lpr`: call `Randomize` at startup — without it `NewId` (api/designer) produced the
+  same id sequence on every run, so restarts collided on board/list/card ids.
 
 ### Known TODO (carried forward)
 
