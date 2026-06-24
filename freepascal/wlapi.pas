@@ -49,6 +49,10 @@ procedure ApiLists(aRequest: TRequest; aResponse: TResponse);          // GET li
 procedure ApiList(aRequest: TRequest; aResponse: TResponse);
 procedure ApiCards(aRequest: TRequest; aResponse: TResponse);          // POST add card
 procedure ApiCard(aRequest: TRequest; aResponse: TResponse);
+procedure ApiCardEdit(aRequest: TRequest; aResponse: TResponse);      // PUT card (title/desc/color/labels)
+procedure ApiListCards(aRequest: TRequest; aResponse: TResponse);     // GET cards in a list
+procedure ApiListCardsCount(aRequest: TRequest; aResponse: TResponse);
+procedure ApiBoardCardsCount(aRequest: TRequest; aResponse: TResponse);
 procedure ApiSwimlaneCards(aRequest: TRequest; aResponse: TResponse);
 
 implementation
@@ -313,21 +317,104 @@ begin
   SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
 end;
 
-procedure ApiCard(aRequest: TRequest; aResponse: TResponse);
-var T: TWLTenant; UserId: string; R: TWLRows; O: TJSONObject;
+// Send one card as JSON (incl. its labelIds). Returns False (and sends 404) if missing.
+function SendCardById(aResponse: TResponse; Db: TWLDb; const CardId: string): Boolean;
+var R, L: TWLRows; O: TJSONObject; A: TJSONArray; i: Integer;
 begin
-  if not ApiTenant(aRequest, aResponse, T) then Exit;
-  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
-  R := T.Db.Query(Format(
-    'SELECT id,title,description,listId,swimlaneId,boardId FROM cards WHERE id=%s LIMIT 1;',
-    [QuotedStr(aRequest.RouteParams['cardId'])]));
+  Result := False;
+  R := Db.Query(Format(
+    'SELECT id,title,description,listId,swimlaneId,boardId,color FROM cards WHERE id=%s LIMIT 1;',
+    [QuotedStr(CardId)]));
   if Length(R) = 0 then begin SendError(aResponse, 404, 'Card not found'); Exit; end;
   O := TJSONObject.Create;
   try
     O.Add('_id', R[0][0]); O.Add('title', R[0][1]); O.Add('description', R[0][2]);
     O.Add('listId', R[0][3]); O.Add('swimlaneId', R[0][4]); O.Add('boardId', R[0][5]);
+    O.Add('color', R[0][6]);
+    A := TJSONArray.Create;
+    L := Db.Query(Format('SELECT labelId FROM card_labels WHERE cardId=%s;', [QuotedStr(CardId)]));
+    for i := 0 to High(L) do if Length(L[i]) > 0 then A.Add(L[i][0]);
+    O.Add('labelIds', A);
     SendJson(aResponse, O.AsJSON);
+    Result := True;
   finally O.Free; end;
+end;
+
+procedure ApiCard(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  SendCardById(aResponse, T.Db, aRequest.RouteParams['cardId']);
+end;
+
+// PUT card — update any of title/description/color and replace labelIds if given.
+procedure ApiCardEdit(aRequest: TRequest; aResponse: TResponse);
+var
+  T: TWLTenant; UserId, CardId, Title, Descr, Color, LabelIds, Sets: string;
+  Parts: TStringArray; i: Integer;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  CardId := aRequest.RouteParams['cardId'];
+
+  Title := BodyField(aRequest, 'title');
+  Descr := BodyField(aRequest, 'description');
+  Color := BodyField(aRequest, 'color');
+  Sets  := 'modifiedAt=' + QuotedStr(NowIso) + ', dateLastActivity=' + QuotedStr(NowIso);
+  if Title <> '' then Sets := Sets + ', title=' + QuotedStr(Title);
+  if Descr <> '' then Sets := Sets + ', description=' + QuotedStr(Descr);
+  if Color <> '' then Sets := Sets + ', color=' + QuotedStr(Color);
+  T.Db.Exec(Format('UPDATE cards SET %s WHERE id=%s;', [Sets, QuotedStr(CardId)]));
+
+  LabelIds := BodyField(aRequest, 'labelIds');
+  if LabelIds <> '' then
+  begin
+    T.Db.Exec(Format('DELETE FROM card_labels WHERE cardId=%s;', [QuotedStr(CardId)]));
+    Parts := StringReplace(LabelIds, ' ', '', [rfReplaceAll]).Split([',']);
+    for i := 0 to High(Parts) do
+      if Parts[i] <> '' then
+        T.Db.Exec(Format('INSERT OR IGNORE INTO card_labels(cardId,labelId) VALUES(%s,%s);',
+          [QuotedStr(CardId), QuotedStr(Parts[i])]));
+  end;
+
+  SendCardById(aResponse, T.Db, CardId);
+end;
+
+procedure ApiListCards(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
+    'SELECT id,title FROM cards WHERE listId=%s AND archived=0 ORDER BY sort;',
+    [QuotedStr(aRequest.RouteParams['listId'])]))));
+end;
+
+function CountOf(Db: TWLDb; const WhereCol, Id: string): Integer;
+var R: TWLRows;
+begin
+  R := Db.Query(Format('SELECT COUNT(*) FROM cards WHERE %s=%s AND archived=0;',
+    [WhereCol, QuotedStr(Id)]));
+  if (Length(R) > 0) and (Length(R[0]) > 0) then Result := StrToIntDef(R[0][0], 0) else Result := 0;
+end;
+
+procedure ApiListCardsCount(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  SendJson(aResponse, Format('{"list_cards_count":%d}',
+    [CountOf(T.Db, 'listId', aRequest.RouteParams['listId'])]));
+end;
+
+procedure ApiBoardCardsCount(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  SendJson(aResponse, Format('{"board_cards_count":%d}',
+    [CountOf(T.Db, 'boardId', aRequest.RouteParams['boardId'])]));
 end;
 
 procedure ApiSwimlaneCards(aRequest: TRequest; aResponse: TResponse);

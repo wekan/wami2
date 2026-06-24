@@ -214,8 +214,12 @@ begin
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists', rmGet, @ApiLists);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists', rmPost, @ApiLists);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId', rmGet, @ApiList);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards', rmGet, @ApiListCards);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards', rmPost, @ApiCards);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards_count', rmGet, @ApiListCardsCount);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/cards_count', rmGet, @ApiBoardCardsCount);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards/:cardId', rmGet, @ApiCard);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards/:cardId', rmPut, @ApiCardEdit);
 
   // Everything else: tenant designer pages (pages.url) then 404
   HTTPRouter.RegisterRoute('/*', rmAll, @CatchAll, True);

@@ -61,6 +61,10 @@ and renders a board page from SQLite.
 - REST API (`wlapi.pas`, `docs/api.md`): subset of `public/api/wekan.yml` with Bearer-token auth
   (`POST /users/login` + `Authorization: Bearer`), so WeKan's Python CLI `api.py` works unchanged
   — verified login → board/swimlanes/lists → createlist → addcard → cardsbyswimlane on FPC 3.2.3.
+- REST API — card editing & counts (`wlapi.pas`): `PUT .../cards/:cardId`
+  (title/description/color, and `labelIds` → `card_labels`), `GET .../lists/:listId/cards`, and
+  `.../cards_count` / board `.../cards_count`. Verified via api.py `editcard` / `editcardcolor`
+  / `get_list_cards_count` / `get_board_cards_count`.
 
 ### Fixes
 
