@@ -1,7 +1,7 @@
 # WeKan-Lite — FreePascal architecture — v0.1
 
-Companion to `../contract.md`, `../schema.sql`, `../goals.md`, `../web-stack-decision.md`,
-`../schema-decision.md`. This doc distills the **two working FreePascal prototypes in this
+Companion to `contract.md`, `../schema.sql`, `goals.md`, `web-stack-decision.md`,
+`schema-decision.md`. This doc distills the **two working FreePascal prototypes in this
 tree** into the architecture WeKan-Lite should build on, and the reference units in this
 `freepascal/` directory implement the load-bearing pieces.
 
@@ -48,7 +48,7 @@ the `Host` header (lowercase, strip port and optional `www.`), map to
 See `goals.md` G8 for the on-disk layout. Implemented in `wltenant.pas`.
 
 ### 2. Auth (G4) — `wlauth.pas`
-Lifted from `omi/public/server.pas`, which already solves "auth without cookies or JS":
+Lifted from `../omi/public/server.pas`, which already solves "auth without cookies or JS":
 - **Session id travels in the URL** (`?sessionId=…`) and in **hidden form fields**, never a
   required cookie — so IBrowse/NetSurf/Dillo/Lynx all work.
 - Every state-changing action is a `<form method="POST">` carrying an **action-token**: a

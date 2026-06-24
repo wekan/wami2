@@ -1,9 +1,9 @@
 unit wlauth;
 
 {
-  WeKan-Lite — no-cookie / no-JS authentication (goals.md G4)
+  WeKan-Lite — no-cookie / no-JS authentication (docs/goals.md G4)
 
-  Distilled from ../omi/public/server.pas, which already solves "auth for IBrowse / NetSurf /
+  Distilled from omi/public/server.pas, which already solves "auth for IBrowse / NetSurf /
   Dillo / Lynx": the session id rides in the URL and in hidden <form> fields (never a required
   cookie), and every state-changing POST carries an action-token bound to the session.
 
@@ -17,7 +17,7 @@ unit wlauth;
 
   Difference from omi: the bearer/login token is persisted in schema.sql's login_tokens table
   (hashedToken, userId, createdAt, expiresAt) instead of RAM + flat files, matching
-  ../contract.md's auth flow. HashText below is omi's FNV-1a (pure Pascal, no crypto lib so
+  docs/contract.md's auth flow. HashText below is omi's FNV-1a (pure Pascal, no crypto lib so
   it builds on 68k); swap in SHA-256 where a backend is linked.
 
   v0.1 reference skeleton.

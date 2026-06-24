@@ -1,11 +1,11 @@
 unit wlenhance;
 
 {
-  WeKan-Lite — progressive enhancement (progressive-enhancement.md)
+  WeKan-Lite — progressive enhancement (docs/progressive-enhancement.md)
 
   The baseline UI is no-JS / no-cookie HTML 3.2 forms (works on IBrowse/NetSurf/Lynx). Where
   JavaScript and touch are available, richer features light up AUTOMATICALLY — most notably
-  MultiDrag (../wami/public/multidrag, InteractJS): on a big touch screen many cards can be
+  MultiDrag (wami/public/multidrag, InteractJS): on a big touch screen many cards can be
   dragged at once, each finger a different card. Enhancements NEVER replace the baseline: a
   drag just POSTs to the same `.../move` endpoint the form buttons already use.
 

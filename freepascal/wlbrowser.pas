@@ -1,9 +1,9 @@
 unit wlbrowser;
 
 {
-  WeKan-Lite — User-Agent detection (goals.md G2/G4)
+  WeKan-Lite — User-Agent detection (docs/goals.md G2/G4)
 
-  Distilled from ../wami/wekan.pas WebBrowserName. Identifies the client browser so endpoints
+  Distilled from wami/wekan.pas WebBrowserName. Identifies the client browser so endpoints
   can tune output — e.g. drop the optional drag-and-drop JS for retro browsers and serve the
   HTML 3.2 baseline (see wlhtml.pas). Detection is best-effort and never gates functionality:
   every page must work without it.

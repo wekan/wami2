@@ -67,7 +67,7 @@ consistently.
 ## Imported color systems (Trello, Kanboard, …)
 
 Imports carry their own palettes; `MapImportColor(source, value)` folds them into WeKan colors
-(used by the importers in `../schema-decision.md`):
+(used by the importers in `schema-decision.md`):
 - **Trello**: label names already match WeKan (`green`, `yellow`, `orange`, `red`, `purple`,
   `blue`, `sky`, `lime`, `pink`, `black`); newer shade variants (`green_light`, `green_dark`,
   `*_subtle`) collapse to their base; `null` → no color.

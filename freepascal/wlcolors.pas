@@ -1,7 +1,7 @@
 unit wlcolors;
 
 {
-  WeKan-Lite — colors + color-picker components (theming.md)
+  WeKan-Lite — colors + color-picker components (docs/theming.md)
 
   Any UI element (text, text background, card, list, swimlane, …) can use a WeKan named color
   OR an arbitrary HTML color. A color value is stored as either:
@@ -14,7 +14,7 @@ unit wlcolors;
   with no JS on retro browsers). RenderColorInput emits the chosen component.
 
   Palette hex values are taken from the in-tree wami CSS
-  (../wami/public/client/components/{boards/boardColors.css, cards/labels.css}); that CSS is
+  (wami/public/client/components/{boards/boardColors.css, cards/labels.css}); that CSS is
   the authoritative source if any value here drifts.
 
   v0.1 reference skeleton.
@@ -66,7 +66,7 @@ function NormalizeHex(const Value: string): string;
 function ResolveColor(const Value: string): string;
 
 // Map an imported color token from an external system to a WeKan color (name or hex), for the
-// importers (see ../schema-decision.md). Source: 'trello' | 'kanboard' | 'wekan'.
+// importers (see docs/schema-decision.md). Source: 'trello' | 'kanboard' | 'wekan'.
 //   * Trello: names mostly match WeKan (green/yellow/orange/red/purple/blue/sky/lime/pink/
 //     black); newer _light/_dark/_subtle variants collapse to their base; 'null' -> ''.
 //   * Kanboard: palette keys (yellow, blue, grey, brown, deep_orange, …) -> nearest WeKan name.

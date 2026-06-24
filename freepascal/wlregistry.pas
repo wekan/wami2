@@ -1,7 +1,7 @@
 unit wlregistry;
 
 {
-  WeKan-Lite — domain registry (goals.md G8, the Global Admin's data store)
+  WeKan-Lite — domain registry (docs/goals.md G8, the Global Admin's data store)
 
   Backed by data/admin/db/data.db. Holds the host -> tenant mapping that the Global Admin
   edits (create/rename/disable a domain, aliases). wltenant.pas consults this on every

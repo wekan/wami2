@@ -1,7 +1,7 @@
 unit wltenant;
 
 {
-  WeKan-Lite — tenant resolution (multitenancy by domain, goals.md G8)
+  WeKan-Lite — tenant resolution (multitenancy by domain, docs/goals.md G8)
 
   Maps the HTTP Host: header to a per-tenant directory and SQLite database:
 
@@ -14,7 +14,7 @@ unit wltenant;
   them. There is no shared database — isolation is structural (one SQLite file per tenant).
 
   This unit is a v0.1 reference skeleton distilled from the single-tenant prototypes
-  ../wami/wekan.pas and ../omi/public/server.pas, extended with the host->dir routing those
+  wami/wekan.pas and omi/public/server.pas, extended with the host->dir routing those
   prototypes lack. The DB handle type is intentionally opaque (TWLDb from wldb.pas).
 }
 

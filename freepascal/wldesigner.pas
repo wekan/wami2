@@ -1,7 +1,7 @@
 unit wldesigner;
 
 {
-  WeKan-Lite — Designer engine (designer.md, designer-schema.sql)
+  WeKan-Lite — Designer engine (docs/designer.md, designer-schema.sql)
 
   Data-driven pages: a page is a `pages` row + its `page_widgets`; the renderer turns that
   into a retro HTML 3.2 (or HTML 4) table, and the Designer is a second set of pages that edit

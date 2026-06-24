@@ -1,10 +1,10 @@
 unit wlhtml;
 
 {
-  WeKan-Lite — retro-safe HTML helpers (goals.md G4)
+  WeKan-Lite — retro-safe HTML helpers (docs/goals.md G4)
 
-  Distilled from ../omi/public/server.pas (HtmlEncode, PrettyHtml32) and the table-layout
-  idioms in ../wami/wekan.pas. The baseline output tier is HTML 3.2 Final with table layout
+  Distilled from omi/public/server.pas (HtmlEncode, PrettyHtml32) and the table-layout
+  idioms in wami/wekan.pas. The baseline output tier is HTML 3.2 Final with table layout
   and no CSS/JS, verified in omi against IBrowse+AmiSSL, Dillo, Elinks, w3m, Lynx.
 
   Use HtmlEncode for text nodes and HtmlAttr for attribute values. PrettyHtml32 is optional

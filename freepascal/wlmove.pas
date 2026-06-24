@@ -1,10 +1,10 @@
 unit wlmove;
 
 {
-  WeKan-Lite — combined arrows move component (move-component.md)
+  WeKan-Lite — combined arrows move component (docs/move-component.md)
 
   The no-JS / HTML 3.2|4 baseline for moving board items. Mirrors the COMBINED toolbar in
-  ../tcl-tk-kanban/kanban.go (Go/Fyne): one arrow keypad
+  tcl-tk-kanban/kanban.go (Go/Fyne): one arrow keypad
 
          [ ▲ ]
     [ ◀ ][ ▼ ][ ▶ ]

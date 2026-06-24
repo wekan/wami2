@@ -4,17 +4,17 @@ program wlhttp;
   WeKan-Lite — program entry (v0.1 reference skeleton)
 
   Wires the pieces distilled from the prototypes into one multitenant server:
-    fphttpapp + httproute   (stack used by both ../wami/wekan.pas and ../omi/public/server.pas)
-    wltenant                Host: header -> data/domains/<domain>/db/data.db   (goals.md G8)
-    wlauth                  no-cookie / no-JS sessions + action-tokens          (goals.md G4)
-    wldb                    SQLite behind one interface                         (sqlite-access-decision.md)
+    fphttpapp + httproute   (stack used by both wami/wekan.pas and omi/public/server.pas)
+    wltenant                Host: header -> data/domains/<domain>/db/data.db   (docs/goals.md G8)
+    wlauth                  no-cookie / no-JS sessions + action-tokens          (docs/goals.md G4)
+    wldb                    SQLite behind one interface                         (docs/sqlite-access-decision.md)
 
-  Build (see SERVER_FREEPASCAL.md for per-platform flags):
+  Build (see omi/docs/SERVER_FREEPASCAL.md for per-platform flags):
     fpc -O3 -Xs -o wekanlite wlhttp.lpr            # linked SQLite (default)
     fpc -dWLDB_CLI -o wekanlite wlhttp.lpr         # bootstrap: external sqlite3 CLI
     fpc -Pm68k -Tamiga -o wekanlite wlhttp.lpr     # classic Amiga 68k
 
-  TLS stays out of the binary (web-stack-decision.md Decision 5): terminate at Caddy/proxy,
+  TLS stays out of the binary (docs/web-stack-decision.md Decision 5): terminate at Caddy/proxy,
   or load AmiSSL/OpenSSL dynamically. Run plain HTTP here.
 }
 
@@ -173,7 +173,7 @@ begin
   HTTPRouter.RegisterRoute('/sign-in', rmGet, @SignInEndpoint);
   HTTPRouter.RegisterRoute('/sign-in', rmPost, @SignInEndpoint);
 
-  // Designer (Domain Global Admin; no-JS/no-cookie) — see designer.md
+  // Designer (Domain Global Admin; no-JS/no-cookie) — see docs/designer.md
   HTTPRouter.RegisterRoute('/designer', rmGet, @DesignerIndex);
   HTTPRouter.RegisterRoute('/designer/page', rmGet, @DesignerEditPage);
   HTTPRouter.RegisterRoute('/designer/widget/move', rmPost, @DesignerWidgetMove);
@@ -183,7 +183,7 @@ begin
   HTTPRouter.RegisterRoute('/designer/export', rmGet, @DesignerExportAll);
   HTTPRouter.RegisterRoute('/designer/import', rmPost, @DesignerImportAll);
 
-  // Combined no-JS move component (arrows keypad) — see move-component.md
+  // Combined no-JS move component (arrows keypad) — see docs/move-component.md
   HTTPRouter.RegisterRoute('/board/move', rmPost, @BoardMoveEndpoint);
 
   // Everything else: tenant designer pages (pages.url) then 404

@@ -45,7 +45,7 @@ Windows/Linux/macOS. Pure-Pascal / RTL-only where possible; **no GTK/Qt or heavy
 ### G3 — SQLite as the only datastore
 Text data lives in one SQLite file per the canonical `schema.sql`; **no MongoDB**. This is
 the Sandstorm/Amiga enabler called out in the thread. Files (attachments/avatars) live
-**outside** SQLite (MinIO/S3 or filesystem) — see `minio-metadata/` and `schema-decision.md`.
+**outside** SQLite (MinIO/S3 or filesystem) — see `../minio-metadata/` and `schema-decision.md`.
 
 ### G4 — No-JS, no-cookie capable
 Every interactive element works as a plain `<form>` POST; session token carried in the URL
@@ -122,7 +122,7 @@ FreePascal executable** handles all tenants, and the Global Admin manages all do
   SQLite file; the same goes for files. This keeps G3 (one SQLite file) intact per tenant
   and composes with G7 (only opened tenants consume RAM).
 - **Files stay outside SQLite** (G3): `files/attachments` and `files/avatars` are the
-  per-tenant local equivalent of the MinIO/S3 buckets in `minio-metadata/`; an S3 backend,
+  per-tenant local equivalent of the MinIO/S3 buckets in `../minio-metadata/`; an S3 backend,
   when used, namespaces by the same domain key.
 - **Portability** (G2): a plain directory tree works identically on Amiga/Haiku/AROS/etc.
   with no per-tenant processes — one binary, many domains.

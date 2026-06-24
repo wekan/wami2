@@ -8,7 +8,7 @@ SQLite-only, G2 runs on 68k/Haiku/AROS) drive the answer.
 
 | | **A. `sqlite3` CLI via `TProcess`** | **B. Linked SQLite (`sqlite3`/`sqldb` units)** |
 |---|---|---|
-| Seen in | `../omi/public/server.pas` (`ExecSqlOnDb`) | implied by `../contract.md` / `goals.md` |
+| Seen in | `../omi/public/server.pas` (`ExecSqlOnDb`) | implied by `contract.md` / `goals.md` |
 | How | spawn `sqlite3 <db> -separator '|' -batch -noheader "<sql>"`, parse stdout | call libsqlite3 in-process (statically linked or `.so`/`.dll`) |
 | Deps | a **`sqlite3` executable** on PATH | libsqlite3 (bundle the amalgamation → static) |
 | Single binary (G1) | ✗ needs an external program too | ✓ one file, nothing else |

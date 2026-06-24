@@ -3,26 +3,26 @@
 FreePascal-specific design docs and reference code for WeKan-Lite, **distilled from the two
 working prototypes in this tree** and aligned to the portable contract:
 
-- `../wami/wekan.pas` — single-file WeKan web prototype (routing + retro HTML surface).
-- `../omi/public/server.pas` — mature server (no-cookie/no-JS auth, SQLite-via-CLI, i18n).
-- `../contract.md`, `../schema.sql`, `../goals.md`, `../web-stack-decision.md`,
-  `../schema-decision.md` — the portable contract these target.
+- `wami/wekan.pas` — single-file WeKan web prototype (routing + retro HTML surface).
+- `omi/public/server.pas` — mature server (no-cookie/no-JS auth, SQLite-via-CLI, i18n).
+- `docs/contract.md`, `schema.sql`, `docs/goals.md`, `docs/web-stack-decision.md`,
+  `docs/schema-decision.md` — the portable contract these target.
 
 ## Read first
-- **`architecture.md`** — how the prototypes map onto WeKan-Lite: request lifecycle
+- **`docs/architecture.md`** — how the prototypes map onto WeKan-Lite: request lifecycle
   (tenant → auth → endpoint), retro-HTML tiers, unit layout, what's still missing.
-- **`sqlite-access-decision.md`** — the one real fork: linked SQLite (default) vs the
+- **`docs/sqlite-access-decision.md`** — the one real fork: linked SQLite (default) vs the
   `sqlite3` CLI via `TProcess` (bootstrap/fallback). Both live behind `wldb.pas`.
-- **`designer.md`** — the no-JS/no-cookie page builder: data-driven pages, form-driven
+- **`docs/designer.md`** — the no-JS/no-cookie page builder: data-driven pages, form-driven
   layout editing, custom URLs, LTR/RTL mirroring (one definition), import/export
   (`.wlpage` / `.zip`). Schema in `designer-schema.sql`, engine in `wldesigner.pas`.
-- **`theming.md`** — colors for any element (WeKan palette or hex), choosable color-picker
+- **`docs/theming.md`** — colors for any element (WeKan palette or hex), choosable color-picker
   components, imported-palette mapping (Trello/Kanboard), and Red Strings as SVG/VML/ASCII
   per browser. Code: `wlcolors.pas`, `wlvector.pas`.
-- **`progressive-enhancement.md`** — the layering rule: no-JS form baseline always works;
+- **`docs/progressive-enhancement.md`** — the layering rule: no-JS form baseline always works;
   JS+touch features (MultiDrag — drag many cards at once on a big touch screen) auto-activate
   on top, driving the same endpoints. Code: `wlenhance.pas`.
-- **`move-component.md`** — the default no-JS move UI: select swimlanes/lists/cards, move all
+- **`docs/move-component.md`** — the default no-JS move UI: select swimlanes/lists/cards, move all
   with one `▲◀▼▶` keypad (combined, like `kanban.go`). Code: `wlmove.pas`.
 
 ## Reference units (v0.1 skeletons)
@@ -35,11 +35,11 @@ working prototypes in this tree** and aligned to the portable contract:
 | `wldb.pas` | SQLite behind one interface; CLI **or** linked backend | `{$DEFINE WLDB_CLI}` selects CLI |
 | `wlhtml.pas` | retro-safe HTML 3.2 helpers + pretty printer + dir wrapper | from omi `HtmlEncode`/`PrettyHtml32` |
 | `wlbrowser.pas` | User-Agent → browser id (tune output per client) | from wami `WebBrowserName` |
-| `wldesigner.pas` | **Designer** — data-driven pages, render, LTR/RTL, import/export | new; `designer.md` + `designer-schema.sql` |
-| `wlcolors.pas` | WeKan color palette + color-picker components + import-color mapping | `theming.md` |
-| `wlvector.pas` | Red Strings / connectors as SVG / VML / ASCII per browser | `theming.md` |
-| `wlenhance.pas` | progressive enhancement — MultiDrag/touch hooks + script include | `progressive-enhancement.md` |
-| `wlmove.pas` | combined no-JS arrows move component + `/board/move` apply | `move-component.md` |
+| `wldesigner.pas` | **Designer** — data-driven pages, render, LTR/RTL, import/export | new; `docs/designer.md` + `designer-schema.sql` |
+| `wlcolors.pas` | WeKan color palette + color-picker components + import-color mapping | `docs/theming.md` |
+| `wlvector.pas` | Red Strings / connectors as SVG / VML / ASCII per browser | `docs/theming.md` |
+| `wlenhance.pas` | progressive enhancement — MultiDrag/touch hooks + script include | `docs/progressive-enhancement.md` |
+| `wlmove.pas` | combined no-JS arrows move component + `/board/move` apply | `docs/move-component.md` |
 
 > These are *skeletons* — faithful to the prototypes' style (`{$mode objfpc}{$H+}`,
 > `{$CODEPAGE UTF8}`, `TRequest`/`TResponse`, `HTTPRouter.RegisterRoute`) and meant as the
@@ -56,4 +56,4 @@ fpc -dWLDB_CLI -o wekanlite wlhttp.lpr         # bootstrap: external sqlite3 CLI
 fpc -Pm68k -Tamiga -o wekanlite wlhttp.lpr     # classic Amiga 68k
 ```
 Run plaintext HTTP; terminate TLS at a proxy or load AmiSSL/OpenSSL dynamically
-(`../web-stack-decision.md` Decision 5). Default port 5500, override with `WEKANLITE_PORT`.
+(`docs/web-stack-decision.md` Decision 5). Default port 5500, override with `WEKANLITE_PORT`.

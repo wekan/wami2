@@ -1,7 +1,7 @@
 unit wlvector;
 
 {
-  WeKan-Lite — vector graphics for connectors / Red Strings (theming.md)
+  WeKan-Lite — vector graphics for connectors / Red Strings (docs/theming.md)
 
   WeKan's "Red Strings" (card dependencies — schema.sql card_dependencies) draw lines between
   cards. Browsers differ wildly in vector support, so the renderer picks a mode per browser:
@@ -10,7 +10,7 @@ unit wlvector;
     VML    — old Internet Explorer                       <v:line .../>
     ASCII  — IBrowse / Dillo / Lynx / w3m (no vectors)   textual arrows in a table
 
-  Distilled from ../wami/wekan.pas DrawLine, which already emits BOTH an SVG <line> and a VML
+  Distilled from wami/wekan.pas DrawLine, which already emits BOTH an SVG <line> and a VML
   <v:line> in one fragment. This unit separates the three modes and adds the ASCII fallback so
   the dependency graph is still legible on retro/text browsers.
 
