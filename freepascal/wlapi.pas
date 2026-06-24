@@ -47,6 +47,7 @@ procedure ApiBoard(aRequest: TRequest; aResponse: TResponse);
 procedure ApiBoardTitle(aRequest: TRequest; aResponse: TResponse);    // PUT board title
 procedure ApiBoardCopy(aRequest: TRequest; aResponse: TResponse);     // POST copy board
 procedure ApiSwimlanes(aRequest: TRequest; aResponse: TResponse);
+procedure ApiCreateLabel(aRequest: TRequest; aResponse: TResponse);    // PUT board label
 procedure ApiLists(aRequest: TRequest; aResponse: TResponse);          // GET list / POST create
 procedure ApiList(aRequest: TRequest; aResponse: TResponse);
 procedure ApiCards(aRequest: TRequest; aResponse: TResponse);          // POST add card
@@ -364,6 +365,44 @@ begin
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT id,title FROM swimlanes WHERE boardId=%s AND archived=0 ORDER BY sort;',
     [QuotedStr(aRequest.RouteParams['boardId'])]))));
+end;
+
+// read label.<key> from a JSON body {"label":{...}}, falling back to a flat field
+function LabelField(aRequest: TRequest; const Key: string): string;
+var D: TJSONData; Lbl: TJSONData;
+begin
+  Result := BodyField(aRequest, Key);
+  if Result <> '' then Exit;
+  if (aRequest.Content <> '') and (aRequest.Content[1] = '{') then
+    try
+      D := GetJSON(aRequest.Content);
+      try
+        if D is TJSONObject then
+        begin
+          Lbl := TJSONObject(D).Find('label');
+          if Lbl is TJSONObject then Result := TJSONObject(Lbl).Get(Key, '');
+        end;
+      finally D.Free; end;
+    except end;
+end;
+
+// PUT board label — create a board_labels row, return its id.
+procedure ApiCreateLabel(aRequest: TRequest; aResponse: TResponse);
+var
+  T: TWLTenant; UserId, BoardId, Color, Name, Id: string; i: Integer;
+const A = '23456789abcdefghjkmnpqrstwxyz';
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  BoardId := aRequest.RouteParams['boardId'];
+  Color := LabelField(aRequest, 'color');
+  Name  := LabelField(aRequest, 'name');
+  if Color = '' then Color := 'green';
+  SetLength(Id, 6);                              // 6-char label id, unique within board
+  for i := 1 to 6 do Id[i] := A[Random(Length(A)) + 1];
+  T.Db.Exec(Format('INSERT INTO board_labels(boardId,id,name,color) VALUES(%s,%s,%s,%s);',
+    [QuotedStr(BoardId), QuotedStr(Id), QuotedStr(Name), QuotedStr(Color)]));
+  SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
 end;
 
 procedure ApiLists(aRequest: TRequest; aResponse: TResponse);

@@ -212,6 +212,7 @@ begin
   HTTPRouter.RegisterRoute('/api/boards/:boardId', rmGet, @ApiBoard);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/title', rmPut, @ApiBoardTitle);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/copy', rmPost, @ApiBoardCopy);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/labels', rmPut, @ApiCreateLabel);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/swimlanes', rmGet, @ApiSwimlanes);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/swimlanes/:swimlaneId/cards', rmGet, @ApiSwimlaneCards);
   HTTPRouter.RegisterRoute('/api/boards/:boardId/lists', rmGet, @ApiLists);

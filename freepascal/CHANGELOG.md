@@ -68,6 +68,9 @@ and renders a board page from SQLite.
 - REST API — board title & copy (`wlapi.pas`): `PUT .../boards/:boardId/title`;
   `POST .../boards/:boardId/copy` structural deep copy (board + members + swimlanes + lists +
   cards, ids remapped). Verified via api.py `editboardtitle` / `copyboard`.
+- REST API — board labels (`wlapi.pas`): `PUT .../boards/:boardId/labels` creates a label
+  (nested `{label:{color,name}}` body) → `board_labels`; adding a label to a card already works
+  via the card `PUT labelIds`. Verified via api.py `createlabel`.
 
 ### Fixes
 
