@@ -60,6 +60,8 @@ procedure ApiSwimlaneCards(aRequest: TRequest; aResponse: TResponse);
 procedure ApiCardChecklists(aRequest: TRequest; aResponse: TResponse); // GET list / POST create
 procedure ApiChecklist(aRequest: TRequest; aResponse: TResponse);      // GET one + items
 procedure ApiChecklistItems(aRequest: TRequest; aResponse: TResponse); // POST add item
+procedure ApiCardComments(aRequest: TRequest; aResponse: TResponse);   // GET list / POST add
+procedure ApiCardComment(aRequest: TRequest; aResponse: TResponse);    // GET one / DELETE one
 
 implementation
 
@@ -709,6 +711,69 @@ begin
     [QuotedStr(Id), QuotedStr(ChecklistId), QuotedStr(CardId), QuotedStr(BoardId),
      QuotedStr(Title), QuotedStr(NowIso), QuotedStr(NowIso)]));
   SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
+end;
+
+// GET comments of a card / POST add a comment
+procedure ApiCardComments(aRequest: TRequest; aResponse: TResponse);
+var
+  T: TWLTenant; UserId, BoardId, CardId, Author, Text1, Id: string;
+  R: TWLRows; A: TJSONArray; O: TJSONObject; i: Integer;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
+  BoardId := aRequest.RouteParams['boardId'];
+  CardId  := aRequest.RouteParams['cardId'];
+  if aRequest.Method = 'POST' then
+  begin
+    Author := BodyField(aRequest, 'authorId'); if Author = '' then Author := UserId;
+    Text1  := BodyField(aRequest, 'comment');
+    Id := NewId;
+    T.Db.Exec(Format(
+      'INSERT INTO card_comments(id,boardId,cardId,userId,text,createdAt,modifiedAt) ' +
+      'VALUES(%s,%s,%s,%s,%s,%s,%s);',
+      [QuotedStr(Id), QuotedStr(BoardId), QuotedStr(CardId), QuotedStr(Author),
+       QuotedStr(Text1), QuotedStr(NowIso), QuotedStr(NowIso)]));
+    SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
+    Exit;
+  end;
+  R := T.Db.Query(Format(
+    'SELECT id,text FROM card_comments WHERE cardId=%s ORDER BY createdAt;', [QuotedStr(CardId)]));
+  A := TJSONArray.Create;
+  try
+    for i := 0 to High(R) do
+      if Length(R[i]) >= 2 then
+      begin
+        O := TJSONObject.Create;
+        O.Add('_id', R[i][0]); O.Add('comment', R[i][1]);
+        A.Add(O);
+      end;
+    SendJson(aResponse, A.AsJSON);
+  finally A.Free; end;
+end;
+
+// GET one comment / DELETE one comment
+procedure ApiCardComment(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId, CommentId: string; R: TWLRows; O: TJSONObject;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
+  CommentId := aRequest.RouteParams['commentId'];
+  if aRequest.Method = 'DELETE' then
+  begin
+    T.Db.Exec(Format('DELETE FROM card_comments WHERE id=%s;', [QuotedStr(CommentId)]));
+    SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(CommentId, '"')]));
+    Exit;
+  end;
+  R := T.Db.Query(Format('SELECT id,text,userId FROM card_comments WHERE id=%s LIMIT 1;',
+    [QuotedStr(CommentId)]));
+  if Length(R) = 0 then begin SendError(aResponse, 404, 'Comment not found'); Exit; end;
+  O := TJSONObject.Create;
+  try
+    O.Add('_id', R[0][0]); O.Add('comment', R[0][1]); O.Add('authorId', R[0][2]);
+    SendJson(aResponse, O.AsJSON);
+  finally O.Free; end;
 end;
 
 end.

@@ -74,6 +74,9 @@ and renders a board page from SQLite.
 - REST API — checklists (`wlapi.pas`): `GET`/`POST .../cards/:cardId/checklists`,
   `GET .../checklists/:checklistId` (with items), `POST .../checklists/:checklistId/items`.
   Verified via api.py `addchecklist` (title + items) and `checklistid`.
+- REST API — card comments (`wlapi.pas`): `GET`/`POST .../cards/:cardId/comments`,
+  `GET`/`DELETE .../comments/:commentId` → `card_comments`. Verified: post comment → `{_id}`,
+  list returns it.
 
 ### Security
 

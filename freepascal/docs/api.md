@@ -58,6 +58,8 @@ is self-or-admin. Non-members get `403`.
 | `GET`/`POST /api/boards/:boardId/cards/:cardId/checklists` | `checklistid` / `addchecklist` | list / `{"_id"}` |
 | `GET /api/boards/:boardId/cards/:cardId/checklists/:checklistId` | `checklistinfo` | checklist + items |
 | `POST /api/boards/:boardId/cards/:cardId/checklists/:checklistId/items` | (addchecklist items) | `{"_id"}` |
+| `GET`/`POST /api/boards/:boardId/cards/:cardId/comments` | — | list / `{"_id"}` |
+| `GET`/`DELETE /api/boards/:boardId/cards/:cardId/comments/:commentId` | — | comment / `{"_id"}` |
 
 Verified end-to-end against the real `api.py` on FPC 3.2.3: login → board/swimlanes/lists →
 createlist → addcard → cardsbyswimlane → editcard/editcardcolor → counts → editboardtitle →
