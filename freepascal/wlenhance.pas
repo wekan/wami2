@@ -78,9 +78,11 @@ begin
   // POSTs {from,to,sort} to each dragged element's data-move-url. Both self-gate on
   // touch/pointer + JS, so this is safe to emit by default — MultiDrag "just appears" on a big
   // touch screen, OneDrag on a single-touch device, and nothing changes on no-JS browsers.
+  // served from public/js/ by wlstatic (default mount '/'); interact.js is vendored,
+  // wl-multidrag.js is the WeKan-Lite glue (TODO, see progressive-enhancement.md)
   Result :=
-    '<script src="/static/js/interact.js"></script>' + LineEnding +
-    '<script src="/static/js/wl-multidrag.js"></script>' + LineEnding;
+    '<script src="/js/interact.js"></script>' + LineEnding +
+    '<script src="/js/wl-multidrag.js"></script>' + LineEnding;
 end;
 
 end.

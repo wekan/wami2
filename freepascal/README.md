@@ -40,6 +40,10 @@ working prototypes in this tree** and aligned to the portable contract:
 | `wlvector.pas` | Red Strings / connectors as SVG / VML / ASCII per browser | `docs/theming.md` |
 | `wlenhance.pas` | progressive enhancement — MultiDrag/touch hooks + script include | `docs/progressive-enhancement.md` |
 | `wlmove.pas` | combined no-JS arrows move component + `/board/move` apply | `docs/move-component.md` |
+| `wlstatic.pas` | serve `public/` (robots.txt, css, js, …) embedded-or-from-disk | `docs/static-assets.md` |
+
+Build helpers: `tools/genassets.py` (embed `public/` into the binary), `convert-languages.py`
+(regenerate `public/languages.json` from WeKan's `imports/i18n/languages.js`).
 
 > These are *skeletons* — faithful to the prototypes' style (`{$mode objfpc}{$H+}`,
 > `{$CODEPAGE UTF8}`, `TRequest`/`TResponse`, `HTTPRouter.RegisterRoute`) and meant as the

@@ -10,9 +10,12 @@ program wlhttp;
     wldb                    SQLite behind one interface                         (docs/sqlite-access-decision.md)
 
   Build (see https://github.com/wekan/omi/blob/main/docs/SERVER_FREEPASCAL.md for per-platform flags):
-    fpc -O3 -Xs -o wekanlite wlhttp.lpr            # linked SQLite (default)
+    fpc -O3 -Xs -o wekanlite wlhttp.lpr            # linked SQLite (default); serves ./public from disk
     fpc -dWLDB_CLI -o wekanlite wlhttp.lpr         # bootstrap: external sqlite3 CLI
     fpc -Pm68k -Tamiga -o wekanlite wlhttp.lpr     # classic Amiga 68k
+    # single binary with public/ embedded (docs/static-assets.md):
+    #   python3 tools/genassets.py && fpcres wlpublic.rc -o wlpublic.res -of res
+    #   fpc -dWLEMBED -O3 -Xs -o wekanlite wlhttp.lpr
 
   TLS stays out of the binary (docs/web-stack-decision.md Decision 5): terminate at Caddy/proxy,
   or load AmiSSL/OpenSSL dynamically. Run plain HTTP here.
@@ -24,11 +27,14 @@ program wlhttp;
 uses
   {$IFDEF UNIX} cthreads, cmem, {$ENDIF}
   SysUtils, Classes, fphttpapp, httpdefs, httproute,
-  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove;
+  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove, wlstatic
+  {$IFDEF WLEMBED}, wlassets {$ENDIF};   // wlassets registers the embedded-asset lookup
 
 const
-  DEFAULT_PORT = 5500;        // wami used 5500; omi 3001. Override with WEKANLITE_PORT.
-  DATA_ROOT    = 'data';      // data/admin, data/domains/<domain>, data/certs
+  DEFAULT_PORT  = 5500;       // wami used 5500; omi 3001. Override with WEKANLITE_PORT.
+  DATA_ROOT     = 'data';     // data/admin, data/domains/<domain>, data/certs
+  DEFAULT_PUBLIC = 'public';  // static assets dir (disk mode). Override with WEKANLITE_PUBLIC.
+  DEFAULT_MOUNT = '/';        // URL the public/ tree is served under. Override WEKANLITE_STATIC_URL.
 
 // Resolve the tenant for this request or answer 404 (never fall back into another tenant).
 function RequireTenant(aRequest: TRequest; aResponse: TResponse; out T: TWLTenant): Boolean;
@@ -149,6 +155,9 @@ var
   T: TWLTenant;
   S: TWLSession;
 begin
+  // Static assets from public/ (global, tenant-independent): public/robots.txt -> /robots.txt,
+  // public/js/interact.js -> /js/interact.js, etc. Tried before tenant pages.
+  if ServeStatic(aRequest, aResponse) then Exit;
   if RequireTenant(aRequest, aResponse, T) then
   begin
     ValidateSession(T.Db, aRequest, SessionIdFromRequest(aRequest), S);
@@ -165,9 +174,16 @@ begin
 end;
 
 var
-  PortEnv: string;
+  PortEnv, PublicDir, StaticUrl: string;
 begin
   TenantInit(DATA_ROOT);
+
+  // static assets: configurable mount + disk dir (embedded build ignores the disk dir)
+  PublicDir := GetEnvironmentVariable('WEKANLITE_PUBLIC');
+  if PublicDir = '' then PublicDir := DEFAULT_PUBLIC;
+  StaticUrl := GetEnvironmentVariable('WEKANLITE_STATIC_URL');
+  if StaticUrl = '' then StaticUrl := DEFAULT_MOUNT;
+  StaticInit(StaticUrl, PublicDir);
 
   HTTPRouter.RegisterRoute('/', rmGet, @HomeEndpoint);
   HTTPRouter.RegisterRoute('/sign-in', rmGet, @SignInEndpoint);
