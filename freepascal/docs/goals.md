@@ -88,7 +88,7 @@ data/
       db/
         data.db                  this tenant's SQLite DB (the schema.sql tables)
       files/
-        attachments/             card/board attachment files
+        attachments/             card/board attachment files and background images
         avatars/                 user avatar files
     <other-domain>/
       db/data.db
