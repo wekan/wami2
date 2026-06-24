@@ -123,6 +123,47 @@ begin
   Result := True;
 end;
 
+function IsSiteAdmin(Db: TWLDb; const UserId: string): Boolean;
+var R: TWLRows;
+begin
+  R := Db.Query(Format('SELECT isAdmin FROM users WHERE id=%s LIMIT 1;', [QuotedStr(UserId)]));
+  Result := (Length(R) > 0) and (Length(R[0]) > 0) and (R[0][0] = '1');
+end;
+
+// Authorize the user for a board: site admin → always; active member → yes (write blocked if
+// read-only); public board → read only. Sends 403 and returns False otherwise.
+function ApiAuthBoard(const T: TWLTenant; aResponse: TResponse;
+  const UserId, BoardId: string; NeedWrite: Boolean): Boolean;
+var R: TWLRows; ReadOnly: Boolean;
+begin
+  Result := False;
+  if IsSiteAdmin(T.Db, UserId) then Exit(True);
+  R := T.Db.Query(Format(
+    'SELECT isReadOnly FROM board_members WHERE boardId=%s AND userId=%s AND isActive=1 LIMIT 1;',
+    [QuotedStr(BoardId), QuotedStr(UserId)]));
+  if Length(R) > 0 then
+  begin
+    ReadOnly := (Length(R[0]) > 0) and (R[0][0] = '1');
+    if NeedWrite and ReadOnly then begin SendError(aResponse, 403, 'Read-only on this board'); Exit; end;
+    Exit(True);
+  end;
+  if not NeedWrite then
+  begin
+    R := T.Db.Query(Format('SELECT 1 FROM boards WHERE id=%s AND permission=''public'' LIMIT 1;',
+      [QuotedStr(BoardId)]));
+    if Length(R) > 0 then Exit(True);
+  end;
+  SendError(aResponse, 403, 'Not a member of this board');
+end;
+
+// Common guard for board-scoped endpoints: boardId from the route, write = non-GET.
+function ApiBoardGuard(const T: TWLTenant; aRequest: TRequest; aResponse: TResponse;
+  const UserId: string): Boolean;
+begin
+  Result := ApiAuthBoard(T, aResponse, UserId, aRequest.RouteParams['boardId'],
+    aRequest.Method <> 'GET');
+end;
+
 // read a form OR json field from the request body
 function BodyField(aRequest: TRequest; const Name: string): string;
 var D: TJSONData;
@@ -206,6 +247,7 @@ var T: TWLTenant; UserId: string; R: TWLRows; A: TJSONArray; O: TJSONObject; i: 
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not IsSiteAdmin(T.Db, UserId) then begin SendError(aResponse, 403, 'Admin only'); Exit; end;
   R := T.Db.Query('SELECT id,username FROM users ORDER BY username;');
   A := TJSONArray.Create;
   try
@@ -233,6 +275,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if (UserId <> aRequest.RouteParams['userId']) and not IsSiteAdmin(T.Db, UserId) then begin SendError(aResponse, 403, 'Forbidden'); Exit; end;
   // boards the path's user is a member of
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT b.id,b.title FROM boards b JOIN board_members m ON m.boardId=b.id ' +
@@ -245,6 +288,7 @@ var T: TWLTenant; UserId: string; R: TWLRows; O: TJSONObject;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   R := T.Db.Query(Format('SELECT id,title,slug,permission,color FROM boards WHERE id=%s LIMIT 1;',
     [QuotedStr(aRequest.RouteParams['boardId'])]));
   if Length(R) = 0 then begin SendError(aResponse, 404, 'Board not found'); Exit; end;
@@ -261,6 +305,7 @@ var T: TWLTenant; UserId, BoardId, Title: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   BoardId := aRequest.RouteParams['boardId'];
   Title := BodyField(aRequest, 'title');
   T.Db.Exec(Format('UPDATE boards SET title=%s, modifiedAt=%s WHERE id=%s;',
@@ -295,6 +340,7 @@ var
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiAuthBoard(T, aResponse, UserId, aRequest.RouteParams['boardId'], False) then Exit;
   SrcId := aRequest.RouteParams['boardId'];
   Title := BodyField(aRequest, 'title');
 
@@ -367,6 +413,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT id,title FROM swimlanes WHERE boardId=%s AND archived=0 ORDER BY sort;',
     [QuotedStr(aRequest.RouteParams['boardId'])]))));
@@ -399,6 +446,7 @@ const A = '23456789abcdefghjkmnpqrstwxyz';
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   BoardId := aRequest.RouteParams['boardId'];
   Color := LabelField(aRequest, 'color');
   Name  := LabelField(aRequest, 'name');
@@ -415,6 +463,7 @@ var T: TWLTenant; UserId, BoardId, Title, Id: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   BoardId := aRequest.RouteParams['boardId'];
   if aRequest.Method = 'POST' then
   begin
@@ -436,6 +485,7 @@ var T: TWLTenant; UserId: string; R: TWLRows; O: TJSONObject;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   R := T.Db.Query(Format('SELECT id,title FROM lists WHERE id=%s LIMIT 1;',
     [QuotedStr(aRequest.RouteParams['listId'])]));
   if Length(R) = 0 then begin SendError(aResponse, 404, 'List not found'); Exit; end;
@@ -451,6 +501,7 @@ var T: TWLTenant; UserId, BoardId, ListId, Id, Author, Title, Descr, Swimlane: s
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   if aRequest.Method <> 'POST' then begin SendError(aResponse, 405, 'Use POST'); Exit; end;
   BoardId  := aRequest.RouteParams['boardId'];
   ListId   := aRequest.RouteParams['listId'];
@@ -497,6 +548,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendCardById(aResponse, T.Db, aRequest.RouteParams['cardId']);
 end;
 
@@ -508,6 +560,7 @@ var
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   CardId := aRequest.RouteParams['cardId'];
 
   Title := BodyField(aRequest, 'title');
@@ -538,6 +591,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT id,title FROM cards WHERE listId=%s AND archived=0 ORDER BY sort;',
     [QuotedStr(aRequest.RouteParams['listId'])]))));
@@ -556,6 +610,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendJson(aResponse, Format('{"list_cards_count":%d}',
     [CountOf(T.Db, 'listId', aRequest.RouteParams['listId'])]));
 end;
@@ -565,6 +620,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendJson(aResponse, Format('{"board_cards_count":%d}',
     [CountOf(T.Db, 'boardId', aRequest.RouteParams['boardId'])]));
 end;
@@ -574,6 +630,7 @@ var T: TWLTenant; UserId: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT id,title FROM cards WHERE swimlaneId=%s AND archived=0 ORDER BY sort;',
     [QuotedStr(aRequest.RouteParams['swimlaneId'])]))));
@@ -585,6 +642,7 @@ var T: TWLTenant; UserId, BoardId, CardId, Title, Id: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   BoardId := aRequest.RouteParams['boardId'];
   CardId  := aRequest.RouteParams['cardId'];
   if aRequest.Method = 'POST' then
@@ -610,6 +668,7 @@ var T: TWLTenant; UserId: string; R, It: TWLRows; O, IO: TJSONObject; A: TJSONAr
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   R := T.Db.Query(Format('SELECT id,title FROM checklists WHERE id=%s LIMIT 1;',
     [QuotedStr(aRequest.RouteParams['checklistId'])]));
   if Length(R) = 0 then begin SendError(aResponse, 404, 'Checklist not found'); Exit; end;
@@ -638,6 +697,7 @@ var T: TWLTenant; UserId, BoardId, CardId, ChecklistId, Title, Id: string;
 begin
   if not ApiTenant(aRequest, aResponse, T) then Exit;
   if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  if not ApiBoardGuard(T, aRequest, aResponse, UserId) then Exit;
   BoardId     := aRequest.RouteParams['boardId'];
   CardId      := aRequest.RouteParams['cardId'];
   ChecklistId := aRequest.RouteParams['checklistId'];

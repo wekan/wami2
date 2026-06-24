@@ -82,6 +82,11 @@ and renders a board page from SQLite.
   `users.services_json.password`; web sign-in and API `POST /users/login` both verify it, and
   accounts without a real hash can't be logged into. Seed/set with `wekanlite hashpw <plain>`.
   Verified: correct password → token, wrong/empty → 401.
+- Authorization (`wlapi.pas` `ApiAuthBoard`): board-scoped API endpoints now require the token's
+  user to be an active `board_members` row (writes blocked for `isReadOnly`); public boards are
+  read-only to non-members; site admins (`users.isAdmin`) bypass; `/api/users` is admin-only,
+  `/api/users/:id/boards` self-or-admin. Verified: member read private → 200, outsider → 403,
+  outsider write (even public) → 403, public read → 200.
 
 ### Fixes
 

@@ -26,6 +26,11 @@ with the built-in helper:
 ```
 Accounts without a real hash cannot be logged into.
 
+**Authorization** (`ApiAuthBoard`): board-scoped endpoints require the token's user to be an
+active `board_members` row (writes blocked for `isReadOnly`); public boards are readable by
+anyone; site admins (`users.isAdmin`) bypass. `/api/users` is admin-only; `/api/users/:id/boards`
+is self-or-admin. Non-members get `403`.
+
 ## Implemented endpoints
 
 | Method & path | api.py command | Response |
@@ -67,5 +72,4 @@ SQLite DB.
   mix of `json=` (login) and `data=` (other calls).
 - Still TODO (remaining `wekan.yml` endpoints): delete card/list/board, custom fields,
   card comments, swimlane create/edit, attachments, rules/webhooks, org/teams, settings,
-  import/export, label edit/delete and checklist-item toggle, and real password hashing +
-  per-board authorization checks.
+  import/export, label edit/delete and checklist-item toggle. Real password hashing and per-board authorization are now done.
