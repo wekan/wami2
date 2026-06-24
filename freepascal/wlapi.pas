@@ -44,6 +44,8 @@ procedure ApiUsers(aRequest: TRequest; aResponse: TResponse);
 procedure ApiPublicBoards(aRequest: TRequest; aResponse: TResponse);
 procedure ApiUserBoards(aRequest: TRequest; aResponse: TResponse);
 procedure ApiBoard(aRequest: TRequest; aResponse: TResponse);
+procedure ApiBoardTitle(aRequest: TRequest; aResponse: TResponse);    // PUT board title
+procedure ApiBoardCopy(aRequest: TRequest; aResponse: TResponse);     // POST copy board
 procedure ApiSwimlanes(aRequest: TRequest; aResponse: TResponse);
 procedure ApiLists(aRequest: TRequest; aResponse: TResponse);          // GET list / POST create
 procedure ApiList(aRequest: TRequest; aResponse: TResponse);
@@ -246,6 +248,112 @@ begin
     O.Add('permission', R[0][3]); O.Add('color', R[0][4]);
     SendJson(aResponse, O.AsJSON);
   finally O.Free; end;
+end;
+
+procedure ApiBoardTitle(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId, BoardId, Title: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  BoardId := aRequest.RouteParams['boardId'];
+  Title := BodyField(aRequest, 'title');
+  T.Db.Exec(Format('UPDATE boards SET title=%s, modifiedAt=%s WHERE id=%s;',
+    [QuotedStr(Title), QuotedStr(NowIso), QuotedStr(BoardId)]));
+  SendJson(aResponse, Format('{"_id":%s,"title":%s}',
+    [AnsiQuotedStr(BoardId, '"'), AnsiQuotedStr(Title, '"')]));
+end;
+
+function Slugify(const S: string): string;
+var i: Integer; c: Char;
+begin
+  Result := '';
+  for i := 1 to Length(S) do
+  begin
+    c := S[i];
+    if c in ['A'..'Z'] then c := Chr(Ord(c) + 32);
+    if c in ['a'..'z', '0'..'9'] then Result := Result + c
+    else if (Result <> '') and (Result[Length(Result)] <> '-') then Result := Result + '-';
+  end;
+  if Result = '' then Result := 'board';
+end;
+
+// POST copy board — structural deep copy: board + members + swimlanes + lists + cards, with
+// remapped ids. (Labels/checklists/comments copy is TODO.)
+procedure ApiBoardCopy(aRequest: TRequest; aResponse: TResponse);
+var
+  T: TWLTenant; UserId, SrcId, Title, NewBoard: string;
+  B, Rows: TWLRows;
+  swMap, listMap: TStringList;
+  i: Integer;
+  newSw, newList, newCard: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  SrcId := aRequest.RouteParams['boardId'];
+  Title := BodyField(aRequest, 'title');
+
+  B := T.Db.Query(Format('SELECT title,permission,type,color FROM boards WHERE id=%s LIMIT 1;',
+    [QuotedStr(SrcId)]));
+  if Length(B) = 0 then begin SendError(aResponse, 404, 'Board not found'); Exit; end;
+  if Title = '' then Title := B[0][0] + ' Copy';
+  NewBoard := NewId;
+  T.Db.Exec(Format(
+    'INSERT INTO boards(id,title,slug,permission,type,color,createdAt,modifiedAt) ' +
+    'VALUES(%s,%s,%s,%s,%s,%s,%s,%s);',
+    [QuotedStr(NewBoard), QuotedStr(Title), QuotedStr(Slugify(Title)),
+     QuotedStr(B[0][1]), QuotedStr(B[0][2]), QuotedStr(B[0][3]),
+     QuotedStr(NowIso), QuotedStr(NowIso)]));
+
+  // members
+  Rows := T.Db.Query(Format('SELECT userId,isAdmin FROM board_members WHERE boardId=%s;', [QuotedStr(SrcId)]));
+  for i := 0 to High(Rows) do
+    if Length(Rows[i]) >= 2 then
+      T.Db.Exec(Format('INSERT INTO board_members(boardId,userId,isAdmin) VALUES(%s,%s,%s);',
+        [QuotedStr(NewBoard), QuotedStr(Rows[i][0]), QuotedStr(Rows[i][1])]));
+
+  swMap := TStringList.Create; swMap.CaseSensitive := True;
+  listMap := TStringList.Create; listMap.CaseSensitive := True;
+  try
+    // swimlanes
+    Rows := T.Db.Query(Format('SELECT id,title,sort FROM swimlanes WHERE boardId=%s;', [QuotedStr(SrcId)]));
+    for i := 0 to High(Rows) do
+      if Length(Rows[i]) >= 3 then
+      begin
+        newSw := NewId; swMap.Values[Rows[i][0]] := newSw;
+        T.Db.Exec(Format('INSERT INTO swimlanes(id,boardId,title,sort,createdAt) VALUES(%s,%s,%s,%s,%s);',
+          [QuotedStr(newSw), QuotedStr(NewBoard), QuotedStr(Rows[i][1]), QuotedStr(Rows[i][2]), QuotedStr(NowIso)]));
+      end;
+    // lists
+    Rows := T.Db.Query(Format('SELECT id,title,sort,swimlaneId FROM lists WHERE boardId=%s;', [QuotedStr(SrcId)]));
+    for i := 0 to High(Rows) do
+      if Length(Rows[i]) >= 4 then
+      begin
+        newList := NewId; listMap.Values[Rows[i][0]] := newList;
+        T.Db.Exec(Format('INSERT INTO lists(id,boardId,swimlaneId,title,sort,createdAt) VALUES(%s,%s,%s,%s,%s,%s);',
+          [QuotedStr(newList), QuotedStr(NewBoard), QuotedStr(swMap.Values[Rows[i][3]]),
+           QuotedStr(Rows[i][1]), QuotedStr(Rows[i][2]), QuotedStr(NowIso)]));
+      end;
+    // cards
+    Rows := T.Db.Query(Format(
+      'SELECT id,title,description,listId,swimlaneId,userId,color,sort FROM cards WHERE boardId=%s;',
+      [QuotedStr(SrcId)]));
+    for i := 0 to High(Rows) do
+      if Length(Rows[i]) >= 8 then
+      begin
+        newCard := NewId;
+        T.Db.Exec(Format(
+          'INSERT INTO cards(id,boardId,listId,swimlaneId,title,description,userId,color,sort,' +
+          'dateLastActivity,createdAt,modifiedAt) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);',
+          [QuotedStr(newCard), QuotedStr(NewBoard),
+           QuotedStr(listMap.Values[Rows[i][3]]), QuotedStr(swMap.Values[Rows[i][4]]),
+           QuotedStr(Rows[i][1]), QuotedStr(Rows[i][2]), QuotedStr(Rows[i][5]),
+           QuotedStr(Rows[i][6]), QuotedStr(Rows[i][7]),
+           QuotedStr(NowIso), QuotedStr(NowIso), QuotedStr(NowIso)]));
+      end;
+  finally
+    swMap.Free; listMap.Free;
+  end;
+  SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(NewBoard, '"')]));
 end;
 
 procedure ApiSwimlanes(aRequest: TRequest; aResponse: TResponse);

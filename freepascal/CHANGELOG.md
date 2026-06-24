@@ -65,6 +65,9 @@ and renders a board page from SQLite.
   (title/description/color, and `labelIds` → `card_labels`), `GET .../lists/:listId/cards`, and
   `.../cards_count` / board `.../cards_count`. Verified via api.py `editcard` / `editcardcolor`
   / `get_list_cards_count` / `get_board_cards_count`.
+- REST API — board title & copy (`wlapi.pas`): `PUT .../boards/:boardId/title`;
+  `POST .../boards/:boardId/copy` structural deep copy (board + members + swimlanes + lists +
+  cards, ids remapped). Verified via api.py `editboardtitle` / `copyboard`.
 
 ### Fixes
 
