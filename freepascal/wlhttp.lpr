@@ -25,9 +25,12 @@ program wlhttp;
 {$CODEPAGE UTF8}
 
 uses
-  {$IFDEF UNIX} cthreads, cmem, {$ENDIF}
+  // cthreads for the threaded server; NOT cmem — FPC's `hmac` unit (used by wlpassword)
+  // corrupts the heap under cmem ("free(): invalid pointer"), and the default FPC memory
+  // manager is already thread-safe, so cmem is unnecessary here.
+  {$IFDEF UNIX} cthreads, {$ENDIF}
   SysUtils, Classes, fphttpapp, httpdefs, httproute,
-  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove, wlstatic, wlapi
+  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove, wlstatic, wlapi, wlpassword
   {$IFDEF WLEMBED}, wlassets {$ENDIF};   // wlassets registers the embedded-asset lookup
 
 const
@@ -99,10 +102,11 @@ begin
   if aRequest.Method = 'POST' then
   begin
     Username := Trim(aRequest.ContentFields.Values['username']);
-    Password := aRequest.ContentFields.Values['password'];   // TODO: hash + compare (services_json)
-    Rows := T.Db.Query(Format('SELECT id FROM users WHERE username=%s LIMIT 1;',
-      [QuotedStr(Username)]));
-    if (Length(Rows) > 0) and (Length(Rows[0]) > 0) and (Password <> '') then
+    Password := aRequest.ContentFields.Values['password'];
+    Rows := T.Db.Query(Format(
+      'SELECT id, COALESCE(json_extract(services_json,''$.password''),'''') ' +
+      'FROM users WHERE username=%s LIMIT 1;', [QuotedStr(Username)]));
+    if (Length(Rows) > 0) and (Length(Rows[0]) >= 2) and VerifyPassword(Password, Rows[0][1]) then
     begin
       S := CreateSession(T.Db, aRequest, Rows[0][0], Username,
                          HashText(Username), 30 * 24 * 60 * 60);
@@ -177,6 +181,14 @@ var
   PortEnv, PublicDir, StaticUrl: string;
 begin
   Randomize;            // seed the RNG used by NewId (wlapi/wldesigner) — else ids repeat per run
+
+  // ops/seed helper: `wekanlite hashpw <plain>` prints a PBKDF2 hash for users.services_json
+  if (ParamCount >= 2) and (ParamStr(1) = 'hashpw') then
+  begin
+    Writeln(HashPassword(ParamStr(2)));
+    Halt(0);
+  end;
+
   TenantInit(DATA_ROOT);
 
   // static assets: configurable mount + disk dir (embedded build ignores the disk dir)

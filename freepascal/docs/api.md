@@ -16,8 +16,15 @@ Authorization: Bearer <token>   on every /api/... request
 
 Tokens are stored in `schema.sql` `login_tokens` (`hashedToken = HashText(token)`) — the same
 table the no-cookie web sessions use. Multitenancy is by `Host:` header, so point `api.py`'s
-`wekanurl` at the tenant's domain. (Password verification is still the skeleton placeholder —
-same TODO as the web sign-in; it does not yet check the hash in `users.services_json`.)
+`wekanurl` at the tenant's domain.
+
+**Passwords** are verified with PBKDF2-HMAC-SHA1 (`wlpassword.pas`); the stored hash lives in
+`users.services_json` under `"password"` (form `pbkdf2_sha1$iters$saltHex$dkHex`). Set/seed one
+with the built-in helper:
+```
+./wekanlite hashpw 'mypassword'      # prints the hash to store in services_json.password
+```
+Accounts without a real hash cannot be logged into.
 
 ## Implemented endpoints
 

@@ -36,7 +36,7 @@ interface
 
 uses
   SysUtils, Classes, HTTPDefs, fpjson, jsonparser, DateUtils,
-  wldb, wltenant, wlauth;
+  wldb, wltenant, wlauth, wlpassword;
 
 procedure ApiLogin(aRequest: TRequest; aResponse: TResponse);
 procedure ApiUser(aRequest: TRequest; aResponse: TResponse);
@@ -168,8 +168,10 @@ begin
   if Username = '' then Username := BodyField(aRequest, 'email');
   Password := BodyField(aRequest, 'password');
 
-  R := T.Db.Query(Format('SELECT id FROM users WHERE username=%s LIMIT 1;', [QuotedStr(Username)]));
-  if (Length(R) = 0) or (Length(R[0]) = 0) or (Password = '') then   // TODO: verify hash
+  R := T.Db.Query(Format(
+    'SELECT id, COALESCE(json_extract(services_json,''$.password''),'''') ' +
+    'FROM users WHERE username=%s LIMIT 1;', [QuotedStr(Username)]));
+  if (Length(R) = 0) or (Length(R[0]) < 2) or (not VerifyPassword(Password, R[0][1])) then
   begin SendError(aResponse, 401, 'Incorrect username or password'); Exit; end;
   UserId := R[0][0];
 

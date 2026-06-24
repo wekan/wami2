@@ -75,6 +75,14 @@ and renders a board page from SQLite.
   `GET .../checklists/:checklistId` (with items), `POST .../checklists/:checklistId/items`.
   Verified via api.py `addchecklist` (title + items) and `checklistid`.
 
+### Security
+
+- Password hashing (`wlpassword.pas`): real PBKDF2-HMAC-SHA1 (RTL-only, salt from
+  `/dev/urandom`) replaces the placeholder "any non-empty password". The stored hash lives in
+  `users.services_json.password`; web sign-in and API `POST /users/login` both verify it, and
+  accounts without a real hash can't be logged into. Seed/set with `wekanlite hashpw <plain>`.
+  Verified: correct password → token, wrong/empty → 401.
+
 ### Fixes
 
 - `wldesigner.pas`: replaced an SQL-style `--` comment inside a Pascal record (compile error
@@ -88,6 +96,9 @@ and renders a board page from SQLite.
   (WAL needs shared-memory/mmap that classic Amiga filesystems lack), WAL elsewhere.
 - `wlhttp.lpr`: call `Randomize` at startup — without it `NewId` (api/designer) produced the
   same id sequence on every run, so restarts collided on board/list/card ids.
+- `wlhttp.lpr`: dropped `cmem` — FPC's `hmac` unit (used by password hashing) corrupts the heap
+  under `cmem` ("free(): invalid pointer"); the default FPC memory manager is already
+  thread-safe, so `cmem` was unnecessary.
 
 ### Known TODO (carried forward)
 
