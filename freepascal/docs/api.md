@@ -29,16 +29,27 @@ same TODO as the web sign-in; it does not yet check the hash in `users.services_
 | `GET /api/boards` | `boards` | public boards `[{"_id","title"}]` |
 | `GET /api/users/:userId/boards` | `boards USERID` | that user's boards |
 | `GET /api/boards/:boardId` | `board BOARDID` | `{"_id","title","slug","permission","color"}` |
+| `PUT /api/boards/:boardId/title` | `editboardtitle` | `{"_id","title"}` |
+| `POST /api/boards/:boardId/copy` | `copyboard` | `{"_id"}` (deep copy) |
+| `PUT /api/boards/:boardId/labels` | `createlabel` | `{"_id"}` (nested `{label:{color,name}}`) |
+| `GET /api/boards/:boardId/cards_count` | `get_board_cards_count` | `{"board_cards_count"}` |
 | `GET /api/boards/:boardId/swimlanes` | `swimlanes BOARDID` | `[{"_id","title"}]` |
 | `GET /api/boards/:boardId/swimlanes/:swimlaneId/cards` | `cardsbyswimlane` | `[{"_id","title"}]` |
 | `GET /api/boards/:boardId/lists` | `lists BOARDID` | `[{"_id","title"}]` |
 | `POST /api/boards/:boardId/lists` | `createlist` | `{"_id"}` |
 | `GET /api/boards/:boardId/lists/:listId` | `list` | `{"_id","title"}` |
+| `GET /api/boards/:boardId/lists/:listId/cards` | (list cards) | `[{"_id","title"}]` |
 | `POST /api/boards/:boardId/lists/:listId/cards` | `addcard` | `{"_id"}` |
-| `GET /api/boards/:boardId/lists/:listId/cards/:cardId` | `getcard` | card object |
+| `GET /api/boards/:boardId/lists/:listId/cards_count` | `get_list_cards_count` | `{"list_cards_count"}` |
+| `GET /api/boards/:boardId/lists/:listId/cards/:cardId` | `getcard` | card object (incl. `labelIds`) |
+| `PUT /api/boards/:boardId/lists/:listId/cards/:cardId` | `editcard` / `editcardcolor` / `addlabel` | updated card |
+| `GET`/`POST /api/boards/:boardId/cards/:cardId/checklists` | `checklistid` / `addchecklist` | list / `{"_id"}` |
+| `GET /api/boards/:boardId/cards/:cardId/checklists/:checklistId` | `checklistinfo` | checklist + items |
+| `POST /api/boards/:boardId/cards/:cardId/checklists/:checklistId/items` | (addchecklist items) | `{"_id"}` |
 
-Verified end-to-end against the real `api.py` on FPC 3.2.3: login → `board` / `swimlanes` /
-`lists` → `createlist` → `addcard` → `cardsbyswimlane`, with rows persisting to the tenant's
+Verified end-to-end against the real `api.py` on FPC 3.2.3: login → board/swimlanes/lists →
+createlist → addcard → cardsbyswimlane → editcard/editcardcolor → counts → editboardtitle →
+copyboard → createlabel → addchecklist/checklistid, with rows persisting to the tenant's
 SQLite DB.
 
 ## Notes & TODO
@@ -47,6 +58,7 @@ SQLite DB.
 - `wekan.yml` is itself served (statically, from `public/api/`) at `/api/wekan.yml`.
 - Bodies are accepted as JSON **or** form-encoded (`BodyField` tries both), matching `api.py`'s
   mix of `json=` (login) and `data=` (other calls).
-- Still TODO (the other ~130 `wekan.yml` endpoints): edit/delete card, custom fields, labels,
-  checklists, attachments, comments, rules/webhooks, org/teams, settings, import/export, and
-  real password hashing + per-board authorization checks.
+- Still TODO (remaining `wekan.yml` endpoints): delete card/list/board, custom fields,
+  card comments, swimlane create/edit, attachments, rules/webhooks, org/teams, settings,
+  import/export, label edit/delete and checklist-item toggle, and real password hashing +
+  per-board authorization checks.
