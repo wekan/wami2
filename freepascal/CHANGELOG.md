@@ -71,6 +71,9 @@ and renders a board page from SQLite.
 - REST API — board labels (`wlapi.pas`): `PUT .../boards/:boardId/labels` creates a label
   (nested `{label:{color,name}}` body) → `board_labels`; adding a label to a card already works
   via the card `PUT labelIds`. Verified via api.py `createlabel`.
+- REST API — checklists (`wlapi.pas`): `GET`/`POST .../cards/:cardId/checklists`,
+  `GET .../checklists/:checklistId` (with items), `POST .../checklists/:checklistId/items`.
+  Verified via api.py `addchecklist` (title + items) and `checklistid`.
 
 ### Fixes
 

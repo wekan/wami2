@@ -57,6 +57,9 @@ procedure ApiListCards(aRequest: TRequest; aResponse: TResponse);     // GET car
 procedure ApiListCardsCount(aRequest: TRequest; aResponse: TResponse);
 procedure ApiBoardCardsCount(aRequest: TRequest; aResponse: TResponse);
 procedure ApiSwimlaneCards(aRequest: TRequest; aResponse: TResponse);
+procedure ApiCardChecklists(aRequest: TRequest; aResponse: TResponse); // GET list / POST create
+procedure ApiChecklist(aRequest: TRequest; aResponse: TResponse);      // GET one + items
+procedure ApiChecklistItems(aRequest: TRequest; aResponse: TResponse); // POST add item
 
 implementation
 
@@ -572,6 +575,78 @@ begin
   SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
     'SELECT id,title FROM cards WHERE swimlaneId=%s AND archived=0 ORDER BY sort;',
     [QuotedStr(aRequest.RouteParams['swimlaneId'])]))));
+end;
+
+// GET checklists of a card / POST create a checklist
+procedure ApiCardChecklists(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId, BoardId, CardId, Title, Id: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  BoardId := aRequest.RouteParams['boardId'];
+  CardId  := aRequest.RouteParams['cardId'];
+  if aRequest.Method = 'POST' then
+  begin
+    Title := BodyField(aRequest, 'title');
+    if Title = '' then Title := 'Checklist';
+    Id := NewId;
+    T.Db.Exec(Format(
+      'INSERT INTO checklists(id,cardId,boardId,title,sort,createdAt,modifiedAt) ' +
+      'VALUES(%s,%s,%s,%s,0,%s,%s);',
+      [QuotedStr(Id), QuotedStr(CardId), QuotedStr(BoardId), QuotedStr(Title),
+       QuotedStr(NowIso), QuotedStr(NowIso)]));
+    SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
+    Exit;
+  end;
+  SendJson(aResponse, RowsAsIdTitle(T.Db.Query(Format(
+    'SELECT id,title FROM checklists WHERE cardId=%s ORDER BY sort;', [QuotedStr(CardId)]))));
+end;
+
+// GET one checklist with its items
+procedure ApiChecklist(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId: string; R, It: TWLRows; O, IO: TJSONObject; A: TJSONArray; i: Integer;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  R := T.Db.Query(Format('SELECT id,title FROM checklists WHERE id=%s LIMIT 1;',
+    [QuotedStr(aRequest.RouteParams['checklistId'])]));
+  if Length(R) = 0 then begin SendError(aResponse, 404, 'Checklist not found'); Exit; end;
+  O := TJSONObject.Create;
+  try
+    O.Add('_id', R[0][0]); O.Add('title', R[0][1]);
+    A := TJSONArray.Create;
+    It := T.Db.Query(Format(
+      'SELECT id,title,isFinished FROM checklist_items WHERE checklistId=%s ORDER BY sort;',
+      [QuotedStr(R[0][0])]));
+    for i := 0 to High(It) do
+      if Length(It[i]) >= 3 then
+      begin
+        IO := TJSONObject.Create;
+        IO.Add('_id', It[i][0]); IO.Add('title', It[i][1]); IO.Add('isFinished', It[i][2] = '1');
+        A.Add(IO);
+      end;
+    O.Add('items', A);
+    SendJson(aResponse, O.AsJSON);
+  finally O.Free; end;
+end;
+
+// POST add an item to a checklist
+procedure ApiChecklistItems(aRequest: TRequest; aResponse: TResponse);
+var T: TWLTenant; UserId, BoardId, CardId, ChecklistId, Title, Id: string;
+begin
+  if not ApiTenant(aRequest, aResponse, T) then Exit;
+  if not ApiAuth(T, aRequest, aResponse, UserId) then Exit;
+  BoardId     := aRequest.RouteParams['boardId'];
+  CardId      := aRequest.RouteParams['cardId'];
+  ChecklistId := aRequest.RouteParams['checklistId'];
+  Title := BodyField(aRequest, 'title');
+  Id := NewId;
+  T.Db.Exec(Format(
+    'INSERT INTO checklist_items(id,checklistId,cardId,boardId,title,sort,createdAt,modifiedAt) ' +
+    'VALUES(%s,%s,%s,%s,%s,0,%s,%s);',
+    [QuotedStr(Id), QuotedStr(ChecklistId), QuotedStr(CardId), QuotedStr(BoardId),
+     QuotedStr(Title), QuotedStr(NowIso), QuotedStr(NowIso)]));
+  SendJson(aResponse, Format('{"_id":%s}', [AnsiQuotedStr(Id, '"')]));
 end;
 
 end.
