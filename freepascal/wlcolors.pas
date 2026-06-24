@@ -14,8 +14,8 @@ unit wlcolors;
   with no JS on retro browsers). RenderColorInput emits the chosen component.
 
   Palette hex values are taken from the in-tree wami CSS
-  (wami/public/client/components/{boards/boardColors.css, cards/labels.css}); that CSS is
-  the authoritative source if any value here drifts.
+  (https://github.com/wekan/wami/tree/main/public/client/components — boards/boardColors.css,
+  cards/labels.css); that CSS is the authoritative source if any value here drifts.
 
   v0.1 reference skeleton.
 }

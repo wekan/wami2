@@ -2,7 +2,7 @@
 
 Source of truth: the Meteor WeKan repo (`models/*.js`, `server/models/*.js`,
 `public/api/wekan.yml`). This document is the portable contract that the FreePascal
-(wami/omi) reimplementation must satisfy. Any future PHP/JS port targets this same file.
+([wami](https://github.com/wekan/wami)/[omi](https://github.com/wekan/omi)) reimplementation must satisfy. Any future PHP/JS port targets this same file.
 
 Companion files in this directory: `schema.sql` (the runnable DDL), `web-stack-decision.md`
 (FreePascal web-stack choice + first-slice skeleton).

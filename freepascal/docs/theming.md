@@ -93,7 +93,7 @@ client (`PickVectorMode` keys off `wlbrowser`):
 | `vml` | `<v:line…>` | old Internet Explorer |
 | `ascii` | textual arrows in `<tt>`, e.g. `Card A --blocks--> Card B` | IBrowse, Dillo, Lynx, w3m |
 
-This generalizes what `../wami/wekan.pas` `DrawLine` already does — it emits **both** an SVG
+This generalizes what [`wami/wekan.pas`](https://github.com/wekan/wami/blob/main/wekan.pas) `DrawLine` already does — it emits **both** an SVG
 `<line>` and a VML `<v:line>` in one fragment — by splitting the modes and adding the ASCII
 fallback so the dependency graph stays legible on text/retro browsers. The line color reuses
 the color model above (`RenderConnector(..., Color)`), defaulting to WeKan's Red String

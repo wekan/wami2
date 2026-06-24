@@ -3,8 +3,8 @@
 FreePascal-specific design docs and reference code for WeKan-Lite, **distilled from the two
 working prototypes in this tree** and aligned to the portable contract:
 
-- `wami/wekan.pas` — single-file WeKan web prototype (routing + retro HTML surface).
-- `omi/public/server.pas` — mature server (no-cookie/no-JS auth, SQLite-via-CLI, i18n).
+- [`wami/wekan.pas`](https://github.com/wekan/wami/blob/main/wekan.pas) — single-file WeKan web prototype (routing + retro HTML surface).
+- [`omi/public/server.pas`](https://github.com/wekan/omi/blob/main/public/server.pas) — mature server (no-cookie/no-JS auth, SQLite-via-CLI, i18n).
 - `docs/contract.md`, `schema.sql`, `docs/goals.md`, `docs/web-stack-decision.md`,
   `docs/schema-decision.md` — the portable contract these target.
 

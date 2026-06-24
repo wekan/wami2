@@ -2,7 +2,7 @@
 
 WeKan-Lite — the FreePascal reimplementation of WeKan: one native binary, SQLite-only, no-JS /
 no-cookie capable, runs where Meteor cannot (Amiga 68k/PPC, MorphOS, AROS, Haiku, BSD, …).
-Distilled from the `wami/` and `omi/` prototypes against the portable contract in `docs/`.
+Distilled from the [`wami/`](https://github.com/wekan/wami) and [`omi/`](https://github.com/wekan/omi) prototypes against the portable contract in `docs/`.
 
 ## 2026-06-25 WeKan-Lite FreePascal — v0.1
 
@@ -13,8 +13,8 @@ and renders a board page from SQLite.
 ### Updates
 
 - Reorganized the tree: design docs live in `freepascal/docs/`, the FreePascal code and
-  `schema.sql` / `designer-schema.sql` / `README.md` at `freepascal/`, and the `wami/`, `omi/`,
-  `tcl-tk-kanban/`, `minio-metadata/` prototypes alongside them.
+  `schema.sql` / `designer-schema.sql` / `README.md` at `freepascal/`, and the [`wami/`](https://github.com/wekan/wami), [`omi/`](https://github.com/wekan/omi),
+  [`tcl-tk-kanban/`](https://github.com/wekan/tcl-tk-kanban), [`minio-metadata/`](https://github.com/wekan/minio-metadata) prototypes alongside them.
 - Updated every cross-reference path to match the new layout — `README.md` (docs → `docs/`,
   prototypes → siblings), `docs/*.md` (co-located docs lose `../`, prototypes/`schema.sql`
   keep `../`), and code comments (prototypes → siblings, design docs → `docs/`).
@@ -47,11 +47,11 @@ and renders a board page from SQLite.
 - Vector graphics (`wlvector.pas`): Red Strings render as SVG (modern/NetSurf), VML (old IE),
   or ASCII arrows (IBrowse/Dillo/Lynx).
 - Progressive enhancement (`wlenhance.pas`, `docs/progressive-enhancement.md`): no-JS form
-  baseline always works; MultiDrag (from `wami/public/multidrag`) auto-activates with JS+touch
+  baseline always works; MultiDrag (from [`wami/public/multidrag`](https://github.com/wekan/wami/tree/main/public/multidrag)) auto-activates with JS+touch
   to drag many cards at once on a big touch screen, driving the same endpoints.
 - Combined move component (`wlmove.pas`, `docs/move-component.md`): one no-JS arrows keypad
   (▲◀▼▶) moves all selected swimlanes/lists/cards via `POST /board/move` (reorder/relocate over
-  `sort` / `listId` / `swimlaneId`), modeled on the combined `tcl-tk-kanban/kanban.go`.
+  `sort` / `listId` / `swimlaneId`), modeled on the combined [`tcl-tk-kanban/kanban.go`](https://github.com/wekan/tcl-tk-kanban/blob/main/kanban.go).
 
 ### Fixes
 
@@ -60,7 +60,7 @@ and renders a board page from SQLite.
 - `wldesigner.pas` zip import: `TUnZipper.UnZipAllFiles(stream)` is not available in
   FreePascal 3.2.x — spool the uploaded archive into a per-operation `data/temp/` dir and unzip
   via `UnZipper.FileName`, removing the dir afterwards.
-- `docs/contract.md`: reverted a path-rewrite false positive — the prose "(wami/omi)
+- `docs/contract.md`: reverted a path-rewrite false positive — the prose "([wami](https://github.com/wekan/wami)/[omi](https://github.com/wekan/omi))
   reimplementation" was turned into a `../wami/omi` path and is now restored.
 
 ### Known TODO (carried forward)

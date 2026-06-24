@@ -3,7 +3,7 @@ unit wlauth;
 {
   WeKan-Lite — no-cookie / no-JS authentication (docs/goals.md G4)
 
-  Distilled from omi/public/server.pas, which already solves "auth for IBrowse / NetSurf /
+  Distilled from https://github.com/wekan/omi/blob/main/public/server.pas, which already solves "auth for IBrowse / NetSurf /
   Dillo / Lynx": the session id rides in the URL and in hidden <form> fields (never a required
   cookie), and every state-changing POST carries an action-token bound to the session.
 

@@ -6,11 +6,11 @@ tree** into the architecture WeKan-Lite should build on, and the reference units
 `freepascal/` directory implement the load-bearing pieces.
 
 Prototypes mined (read them — they are real, compiling code):
-- **`../wami/wekan.pas`** — single-file WeKan web prototype: `fphttpapp` + `httproute`,
+- **[`wami/wekan.pas`](https://github.com/wekan/wami/blob/main/wekan.pas)** — single-file WeKan web prototype: `fphttpapp` + `httproute`,
   port 5500, HTML 4.01 Transitional, server-side browser detection
   (IBrowse/NetSurf/Dillo/…), routes mirroring WeKan's `router.js`, CSV-file user store,
   static files via a `/*` route. Proves the routing + retro-HTML surface.
-- **`../omi/public/server.pas`** — the mature one (~3800 lines): `fphttpapp` + `httproute`,
+- **[`omi/public/server.pas`](https://github.com/wekan/omi/blob/main/public/server.pas)** — the mature one (~3800 lines): `fphttpapp` + `httproute`,
   HTML **3.2** + a server-side pretty-printer, a full **no-cookie / no-JS auth** scheme,
   i18n with fallback resolution, brute-force lockout, and **SQLite accessed by shelling out
   to the `sqlite3` CLI via `TProcess`**. Proves auth + persistence on retro targets.
@@ -48,7 +48,7 @@ the `Host` header (lowercase, strip port and optional `www.`), map to
 See `goals.md` G8 for the on-disk layout. Implemented in `wltenant.pas`.
 
 ### 2. Auth (G4) — `wlauth.pas`
-Lifted from `../omi/public/server.pas`, which already solves "auth without cookies or JS":
+Lifted from [`omi/public/server.pas`](https://github.com/wekan/omi/blob/main/public/server.pas), which already solves "auth without cookies or JS":
 - **Session id travels in the URL** (`?sessionId=…`) and in **hidden form fields**, never a
   required cookie — so IBrowse/NetSurf/Dillo/Lynx all work.
 - Every state-changing action is a `<form method="POST">` carrying an **action-token**: a

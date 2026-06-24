@@ -11,7 +11,7 @@ unit wldb;
   Surface kept deliberately tiny: open/close, an Exec for writes, and a Query that returns
   rows as a TStringList of '|'-free cell arrays. v0.1 reference skeleton — the linked path
   shows intent (real code uses sqlite3_prepare_v2 / bound params; the CLI path mirrors
-  omi/public/server.pas ExecSqlOnDb).
+  https://github.com/wekan/omi/blob/main/public/server.pas ExecSqlOnDb).
 }
 
 {$mode objfpc}{$H+}

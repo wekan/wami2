@@ -1,4 +1,4 @@
-# WeKan-Lite — schema decision: `schema.sql` vs `../kanboard/` vs `../minio-metadata/` — v0.1
+# WeKan-Lite — schema decision: `schema.sql` vs [`kanboard/`](https://github.com/kanboard/kanboard) vs [`minio-metadata/`](https://github.com/wekan/minio-metadata) — v0.1
 
 Companion to `contract.md`, `schema.sql`, and `web-stack-decision.md`. This doc decides
 **which schema WeKan-Lite is built on**, and how the two *source* datasets in this
@@ -13,8 +13,8 @@ migrated from existing Meteor WeKan (MongoDB).
 | Path | What it is | Role in WeKan-Lite |
 |------|-----------|--------------------|
 | **`schema.sql`** | The WeKan-Lite native SQLite DDL (24 tables), derived from Meteor WeKan's `SimpleSchema` definitions. TEXT Mongo-style IDs, ISO-8601 TEXT dates, child tables for nested arrays, JSON blobs for sparse data. | **Destination / canonical schema.** Everything imports *into* this. |
-| **`../kanboard/`** | A full checkout of the Kanboard PHP app. The schema that matters is `app/Schema/Sqlite.php` — 128 sequential migrations that build Kanboard's own SQLite DB (`db.sqlite`): INTEGER autoincrement PKs, epoch-INTEGER dates, a `projects → columns → tasks` model. | **Import source #1.** Defines the shape of the Kanboard/BigBoard data we are importing. We read its `db.sqlite`, not its PHP. |
-| **`../minio-metadata/`** | Bash + `mongoexport` tooling that pulls existing Meteor WeKan data out of MongoDB: text → CSV → SQLite, files → MinIO/S3. The `fields/*.txt` files (41 of them) are the authoritative per-collection field lists of real production WeKan data. | **Import source #2** *and* the **validation oracle** for `schema.sql` (it tells us the real Mongo field names/shapes `schema.sql` must round-trip). |
+| **[`kanboard/`](https://github.com/kanboard/kanboard)** | A full checkout of the Kanboard PHP app. The schema that matters is `app/Schema/Sqlite.php` — 128 sequential migrations that build Kanboard's own SQLite DB (`db.sqlite`): INTEGER autoincrement PKs, epoch-INTEGER dates, a `projects → columns → tasks` model. | **Import source #1.** Defines the shape of the Kanboard/BigBoard data we are importing. We read its `db.sqlite`, not its PHP. |
+| **[`minio-metadata/`](https://github.com/wekan/minio-metadata)** | Bash + `mongoexport` tooling that pulls existing Meteor WeKan data out of MongoDB: text → CSV → SQLite, files → MinIO/S3. The `fields/*.txt` files (41 of them) are the authoritative per-collection field lists of real production WeKan data. | **Import source #2** *and* the **validation oracle** for `schema.sql` (it tells us the real Mongo field names/shapes `schema.sql` must round-trip). |
 
 **These are not three competing schemas to choose between.** `schema.sql` is the target;
 the other two are inputs that must be transformed into it. The "decision" is to keep
@@ -106,9 +106,9 @@ under `plugin_schema_versions`; enumerate that table on the source DB and decide
 
 ---
 
-## How `../minio-metadata/` informs `schema.sql`
+## How [`minio-metadata/`](https://github.com/wekan/minio-metadata) informs `schema.sql`
 
-`../minio-metadata/fields/*.txt` are the real Meteor WeKan collection field lists — they are
+[`minio-metadata/fields/*.txt`](https://github.com/wekan/minio-metadata/tree/main/fields) are the real Meteor WeKan collection field lists — they are
 why `schema.sql` looks the way it does. Spot-check: `fields/cards-fields.txt` lists
 `title, archived, archivedAt, parentId, listId, swimlaneId, boardId, coverId, color,
 customFields, dateLastActivity, members, assignees, labelIds, vote, poker,

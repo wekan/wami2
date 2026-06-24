@@ -4,12 +4,12 @@ program wlhttp;
   WeKan-Lite — program entry (v0.1 reference skeleton)
 
   Wires the pieces distilled from the prototypes into one multitenant server:
-    fphttpapp + httproute   (stack used by both wami/wekan.pas and omi/public/server.pas)
+    fphttpapp + httproute   (stack used by both https://github.com/wekan/wami/blob/main/wekan.pas and https://github.com/wekan/omi/blob/main/public/server.pas)
     wltenant                Host: header -> data/domains/<domain>/db/data.db   (docs/goals.md G8)
     wlauth                  no-cookie / no-JS sessions + action-tokens          (docs/goals.md G4)
     wldb                    SQLite behind one interface                         (docs/sqlite-access-decision.md)
 
-  Build (see omi/docs/SERVER_FREEPASCAL.md for per-platform flags):
+  Build (see https://github.com/wekan/omi/blob/main/docs/SERVER_FREEPASCAL.md for per-platform flags):
     fpc -O3 -Xs -o wekanlite wlhttp.lpr            # linked SQLite (default)
     fpc -dWLDB_CLI -o wekanlite wlhttp.lpr         # bootstrap: external sqlite3 CLI
     fpc -Pm68k -Tamiga -o wekanlite wlhttp.lpr     # classic Amiga 68k

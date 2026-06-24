@@ -5,7 +5,7 @@ the whole UI: **a no-JS / no-cookie HTML form baseline that always works, with J
 touch features that activate automatically on top of it — never instead of it.** Code:
 `wlenhance.pas`.
 
-The flagship enhancement is **MultiDrag** (from `../wami/public/multidrag`, built on
+The flagship enhancement is **MultiDrag** (from [`wami/public/multidrag`](https://github.com/wekan/wami/tree/main/public/multidrag), built on
 [InteractJS](https://interactjs.io)): on a big touch screen you can drag **many cards at once,
 each finger a different card** — e.g. several people moving their own cards on a wall display,
 or one person moving several at a time. That should be included **by default** so it works out
@@ -78,4 +78,4 @@ not done until its **baseline form path works on its own**, with JS/touch/SVG st
 `wlenhance.pas` emits the hooks + script includes and `RenderPage` wires them in. Still TODO:
 the `dataview` board/list renderers must call `DraggableAttrs` on their cards (they are stubs
 today), and `wl-multidrag.js` itself (the InteractJS glue that POSTs to `data-move-url`) needs
-to be written and vendored from the `../wami/public/multidrag` prototype.
+to be written and vendored from the [`wami/public/multidrag`](https://github.com/wekan/wami/tree/main/public/multidrag) prototype.

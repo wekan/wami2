@@ -14,7 +14,7 @@ unit wltenant;
   them. There is no shared database — isolation is structural (one SQLite file per tenant).
 
   This unit is a v0.1 reference skeleton distilled from the single-tenant prototypes
-  wami/wekan.pas and omi/public/server.pas, extended with the host->dir routing those
+  https://github.com/wekan/wami/blob/main/wekan.pas and https://github.com/wekan/omi/blob/main/public/server.pas, extended with the host->dir routing those
   prototypes lack. The DB handle type is intentionally opaque (TWLDb from wldb.pas).
 }
 

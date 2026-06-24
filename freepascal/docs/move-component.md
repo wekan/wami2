@@ -5,9 +5,9 @@ move board items** on HTML 3.2 / HTML 4 pages: select source swimlanes/lists/car
 them with an arrow keypad and buttons — when no JavaScript/drag is available. Code:
 `wlmove.pas`. Endpoint: `POST /board/move`.
 
-Modeled on the **combined** toolbar in `../tcl-tk-kanban/kanban.go` (Go/Fyne), which replaced
+Modeled on the **combined** toolbar in [`tcl-tk-kanban/kanban.go`](https://github.com/wekan/tcl-tk-kanban/blob/main/kanban.go) (Go/Fyne), which replaced
 per-item arrow controls with one shared keypad operating on the current selection. The
-non-combined variant (`../tcl-tk-kanban/kanban.tcl`) puts ▲▼ on every swimlane/card and ◀▶ on
+non-combined variant ([`tcl-tk-kanban/kanban.tcl`](https://github.com/wekan/tcl-tk-kanban/blob/main/kanban.tcl)) puts ▲▼ on every swimlane/card and ◀▶ on
 every list — correct but, as the author notes, it "takes too much space". WeKan-Lite uses the
 combined design.
 
