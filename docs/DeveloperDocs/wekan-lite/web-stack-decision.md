@@ -62,6 +62,43 @@ no Apache/nginx.
 - Cross-compile matrix to smoke-test (plan's verification): `x86_64-linux`,
   `x86_64-win64`, and one retro target — start with `m68k-amiga` or `x86_64-haiku`.
 
+## Decision 5 — TLS / transport security
+
+There is no mature pure-Pascal TLS stack, and OpenSSL/AmiSSL are external C libraries — so
+TLS must **never** be statically linked (that would break the single-binary / RTL-only goal
+for retro targets). Keep it behind FPC's pluggable `TSSLSocketHandler` (`sslsockets` unit)
+so the dispatcher never knows which backend (or none) is active, selected at runtime.
+
+| Target | TLS option | Mechanism |
+|--------|-----------|-----------|
+| **Amiga / MorphOS / AROS** | **AmiSSL, dynamically loaded** — or plain **HTTP** | `amissl.library` opened at runtime via an AmiSSL `TSSLSocketHandler`; if AmiSSL is absent, serve HTTP (LAN, or behind a TLS proxy on a faster box). AmiSSL 5.x = OpenSSL 3.x, so TLS 1.3, incl. 68k. |
+| **Modern (Linux/Win/macOS/BSD/Haiku)** | **OpenSSL (or other) dynamically loaded** — or **HTTP behind Caddy/proxy** | Stock `opensslsockets`/`fpopenssl` dlopen `libssl`/`libcrypto` at runtime; or terminate TLS at Caddy/nginx/stunnel (matches Meteor 3 WeKan's Caddy setup) and serve plain HTTP on localhost. |
+
+- **Default deployment = TLS at a reverse proxy** (Caddy/stunnel), binary on plain HTTP.
+  Zero crypto deps in the binary, works on every target including bare 68k.
+- **Built-in TLS is opt-in and dynamic** on both Amiga (AmiSSL) and modern (OpenSSL); a
+  missing library degrades to HTTP rather than failing to start.
+- Handshake cost is real on 68k — prefer plaintext-on-LAN or proxy-on-a-faster-box there.
+
+### Certificate layout
+All certs/keys live in **one central, host-keyed store** — `data/certs/<host>/` — the way
+Caddy keeps its cert material in a single data dir rather than scattered per site. This is
+separate from the per-tenant `data/domains/<domain>/` trees so cert lifecycle (issue,
+renew, back up) is one concern in one place, and the Global Admin's host cert is just
+another entry:
+
+```
+data/
+  certs/
+    <domain>/          fullchain.pem + privkey.pem  (one dir per served host)
+    <admin-host>/      the Global Admin host's cert/key
+```
+
+When built-in TLS is enabled, the SSL handler maps the **SNI / requested host → `data/certs/<host>/`**
+and loads that cert/key, so one binary serves HTTPS for many domains with independent
+certificates — no per-tenant process. With proxy-terminated TLS, `data/certs/` is unused
+(the proxy holds the certs) and the binary stays plaintext.
+
 ---
 
 ## First vertical slice (login → boards list → board view)
