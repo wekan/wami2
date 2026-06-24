@@ -52,6 +52,12 @@ and renders a board page from SQLite.
 - Combined move component (`wlmove.pas`, `docs/move-component.md`): one no-JS arrows keypad
   (▲◀▼▶) moves all selected swimlanes/lists/cards via `POST /board/move` (reorder/relocate over
   `sort` / `listId` / `swimlaneId`), modeled on the combined [`tcl-tk-kanban/kanban.go`](https://github.com/wekan/tcl-tk-kanban/blob/main/kanban.go).
+- Static assets (`wlstatic.pas`, `docs/static-assets.md`): serve `public/` at a configurable URL
+  (default '/'), embedded in the binary (`-dWLEMBED`, FPC resources via `tools/genassets.py`) or
+  from disk; `convert-languages.py` regenerates `public/languages.json`.
+- REST API (`wlapi.pas`, `docs/api.md`): subset of `public/api/wekan.yml` with Bearer-token auth
+  (`POST /users/login` + `Authorization: Bearer`), so WeKan's Python CLI `api.py` works unchanged
+  — verified login → board/swimlanes/lists → createlist → addcard → cardsbyswimlane on FPC 3.2.3.
 
 ### Fixes
 

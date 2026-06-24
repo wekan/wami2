@@ -24,6 +24,10 @@ working prototypes in this tree** and aligned to the portable contract:
   on top, driving the same endpoints. Code: `wlenhance.pas`.
 - **`docs/move-component.md`** — the default no-JS move UI: select swimlanes/lists/cards, move all
   with one `▲◀▼▶` keypad (combined, like `kanban.go`). Code: `wlmove.pas`.
+- **`docs/static-assets.md`** — serving `public/` (robots.txt, css, js, …) from disk or embedded
+  in the binary. Code: `wlstatic.pas`; tools `tools/genassets.py`, `convert-languages.py`.
+- **`docs/api.md`** — REST API subset (Bearer auth) so WeKan's `api.py` works unchanged.
+  Code: `wlapi.pas`.
 
 ## Reference units (v0.1 skeletons)
 | File | Implements | Notes |
@@ -41,6 +45,7 @@ working prototypes in this tree** and aligned to the portable contract:
 | `wlenhance.pas` | progressive enhancement — MultiDrag/touch hooks + script include | `docs/progressive-enhancement.md` |
 | `wlmove.pas` | combined no-JS arrows move component + `/board/move` apply | `docs/move-component.md` |
 | `wlstatic.pas` | serve `public/` (robots.txt, css, js, …) embedded-or-from-disk | `docs/static-assets.md` |
+| `wlapi.pas` | REST API subset (Bearer auth) so WeKan's `api.py` works | `docs/api.md` |
 
 Build helpers: `tools/genassets.py` (embed `public/` into the binary), `convert-languages.py`
 (regenerate `public/languages.json` from WeKan's `imports/i18n/languages.js`).

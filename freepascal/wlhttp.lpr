@@ -27,7 +27,7 @@ program wlhttp;
 uses
   {$IFDEF UNIX} cthreads, cmem, {$ENDIF}
   SysUtils, Classes, fphttpapp, httpdefs, httproute,
-  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove, wlstatic
+  wltenant, wlauth, wldb, wlhtml, wlbrowser, wldesigner, wlmove, wlstatic, wlapi
   {$IFDEF WLEMBED}, wlassets {$ENDIF};   // wlassets registers the embedded-asset lookup
 
 const
@@ -201,6 +201,21 @@ begin
 
   // Combined no-JS move component (arrows keypad) — see docs/move-component.md
   HTTPRouter.RegisterRoute('/board/move', rmPost, @BoardMoveEndpoint);
+
+  // REST API (subset of public/api/wekan.yml) so the WeKan Python CLI api.py works — see wlapi
+  HTTPRouter.RegisterRoute('/users/login', rmPost, @ApiLogin);
+  HTTPRouter.RegisterRoute('/api/user', rmGet, @ApiUser);
+  HTTPRouter.RegisterRoute('/api/users', rmGet, @ApiUsers);
+  HTTPRouter.RegisterRoute('/api/boards', rmGet, @ApiPublicBoards);
+  HTTPRouter.RegisterRoute('/api/users/:userId/boards', rmGet, @ApiUserBoards);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId', rmGet, @ApiBoard);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/swimlanes', rmGet, @ApiSwimlanes);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/swimlanes/:swimlaneId/cards', rmGet, @ApiSwimlaneCards);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists', rmGet, @ApiLists);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists', rmPost, @ApiLists);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId', rmGet, @ApiList);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards', rmPost, @ApiCards);
+  HTTPRouter.RegisterRoute('/api/boards/:boardId/lists/:listId/cards/:cardId', rmGet, @ApiCard);
 
   // Everything else: tenant designer pages (pages.url) then 404
   HTTPRouter.RegisterRoute('/*', rmAll, @CatchAll, True);
