@@ -1,0 +1,83 @@
+/* VML for IE */
+v\:* {
+  behavior: url(#default#VML);
+}
+#drag-1, #drag-2, #drag-3, #drag-4, #drag-5,
+#drag-6, #drag-7, #drag-8, #drag-9, #drag-10 {
+  color: white;
+  /* margin: 1rem 0 0 1rem; */
+  touch-action: none;
+  user-select: none;
+  transform: translate(0px, 0px);
+  cursor: move;
+  border-radius: 25px;
+  padding: 20px;
+  /* background GIF produces dithered background at Amiga IBrowse, so better to use
+  table background color to get solid color
+  background:url("../../roundcard/round-blue.gif") top left no-repeat;
+  */
+  outline: none; /* Remove default browser focus outline */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+}
+/* At active card at, show red border and shadow on focus*/
+#drag-1:focus, #drag-2:focus, #drag-3:focus,
+#drag-4:focus, #drag-5:focus, #drag-6:focus,
+#drag-7:focus, #drag-8:focus, #drag-9:focus,
+#drag-10:focus {
+  border-color: #f00; /* Red border on focus */
+  box-shadow: 0 0 0 5px rgba(255, 0, 0, 0.5); /* Red shadow on focus */
+  height: 60px;
+}
+/* top + 130px is next position +20 ... background-color: #5e98c2; */
+#drag-1  {  position: absolute; top: 200px; left: 10px;}
+#drag-2  {  position: absolute; top: 330px; left: 10px;}
+#drag-3  {  position: absolute; top: 460px; left: 10px; }
+#drag-4  {  position: absolute; top: 590px; left: 10px;}
+#drag-5  {  position: absolute; top: 720px; left: 10px;}
+#drag-6  {  position: absolute; top: 200px; left: 260px; }
+#drag-7  {  position: absolute; top: 330px; left: 260px; }
+#drag-8  {  position: absolute; top: 460px; left: 260px; }
+#drag-9  {  position: absolute; top: 590px; left: 260px; }
+#drag-10 {  position: absolute; top: 720px; left: 260px; }
+
+.draggable {
+  touch-action: none;
+}
+.redlines {
+  position: fixed; /* or position: absolute */
+  top: 440px;
+  left: 150px;
+  width: 50px;
+  height: 2px;
+  pointer-events: none; /* so that below cards can be clicked */
+}
+#drop_file_zone {
+  background-color: #EEE;
+  border: #999 5px dashed;
+  width: 290px;
+  height: 200px;
+  padding: 8px;
+  font-size: 18px;
+}
+#drag_upload_file {
+  width:50%;
+  margin:0 auto;
+}
+#drag_upload_file p {
+  text-align: center;
+}
+#drag_upload_file #selectfile {
+  display: none;
+}
+#oneboard {
+  min-height: 100px;
+  border: 1px solid black;
+  padding: 2px;
+  border-radius: 10px 10px 10px 10px;
+}
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #dfdfdf;
+  margin: 0;
+  padding: 0;
+}
