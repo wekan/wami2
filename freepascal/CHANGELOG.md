@@ -19,6 +19,9 @@ and renders a board page from SQLite.
   prototypes → siblings), `docs/*.md` (co-located docs lose `../`, prototypes/`schema.sql`
   keep `../`), and code comments (prototypes → siblings, design docs → `docs/`).
 - Verified the whole unit set still builds on FreePascal 3.2.3 after the move.
+- Documented SQLite on Amiga/retro targets (`docs/sqlite-access-decision.md`): FreePascal
+  bundles no SQLite (its `sqlite3` unit is only bindings); Amiga/MorphOS/AROS have none, so
+  statically link the official amalgamation (no Aminet port needed), with retro build notes.
 
 ### Features
 
@@ -68,6 +71,8 @@ and renders a board page from SQLite.
   via `UnZipper.FileName`, removing the dir afterwards.
 - `docs/contract.md`: reverted a path-rewrite false positive — the prose "([wami](https://github.com/wekan/wami)/[omi](https://github.com/wekan/omi))
   reimplementation" was turned into a `../wami/omi` path and is now restored.
+- `wldb.pas`: `journal_mode` is now `DELETE` under `{$IF DEFINED(AMIGA) or MORPHOS or AROS}`
+  (WAL needs shared-memory/mmap that classic Amiga filesystems lack), WAL elsewhere.
 
 ### Known TODO (carried forward)
 
