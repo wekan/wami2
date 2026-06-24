@@ -84,7 +84,13 @@ begin
     raise Exception.CreateFmt('wldb: cannot open %s', [FPath]);
   // recommended pragmas for a single-writer embedded server
   Exec('PRAGMA foreign_keys = ON;');
+  // WAL needs shared-memory/mmap, which classic Amiga filesystems don't provide; fall back to
+  // the portable rollback journal there (see docs/sqlite-access-decision.md).
+  {$IF DEFINED(AMIGA) or DEFINED(MORPHOS) or DEFINED(AROS)}
+  Exec('PRAGMA journal_mode = DELETE;');
+  {$ELSE}
   Exec('PRAGMA journal_mode = WAL;');
+  {$ENDIF}
   {$ENDIF}
 end;
 
